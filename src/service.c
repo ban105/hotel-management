@@ -460,7 +460,7 @@ void saveUsedServices(UsedService usedServices[], int count) {
    ============================================================ */
 int loadUsedServices(UsedService usedServices[]) {
     FILE *fp = fopen("data/used_services.txt", "r");
-    if (!fp) return 0; /* File chua ton tai, tra ve 0 */
+    if (!fp) return 0; 
 
     int count = 0;
     char line[256];

@@ -7,45 +7,42 @@
 #include "booking.h"
 #include "service.h"
 #include "bill.h"
-#include "admin.h"      /* <- THEM DONG NAY */
+#include "admin.h"      
 #include "utils.h"
+#include "employee.h"
 
-/**
- * Ham dong bo trang thai phong dua tren danh sach booking
- * - Khach "Dang o" (status == 1) -> Ep trang thai phong sang "Dang thue" (1)
- * - Khach "Da dat" (status == 0)  -> Giu nguyen phong la "Trong" (0)
- */
+
 void syncRoomStatusWithBookings(Room rooms[], int roomCount,
                                 Booking bookings[], int bookingCount) {
-    /* Reset tat ca phong Dang thue (1) ve Trong (0) truoc */
+    
     for (int j = 0; j < roomCount; j++) {
         if (rooms[j].status == ROOM_OCCUPIED)
             rooms[j].status = ROOM_EMPTY;
     }
 
-    /* Quet tung booking va cap nhat trang thai phong */
+    
     for (int i = 0; i < bookingCount; i++) {
         int rIdx = findRoomById(rooms, roomCount, bookings[i].roomId);
         if (rIdx < 0) continue;
 
         switch (bookings[i].status) {
-            case BOOKING_PENDING:   /* Da dat (0) -> phong bi giu, khong cho dat tiep */
+            case BOOKING_PENDING:   
                 rooms[rIdx].status = ROOM_OCCUPIED;
                 break;
 
-            case BOOKING_CHECKIN:   /* Dang o (1) -> phong dang thue */
+            case BOOKING_CHECKIN:   
                 rooms[rIdx].status = ROOM_OCCUPIED;
                 break;
 
-            case BOOKING_DONE:      /* Da tra (2) -> phong ve Trong */
-            case BOOKING_CANCEL:    /* Da huy (3) -> phong ve Trong */
+            case BOOKING_DONE:      
+            case BOOKING_CANCEL:    
                 if (rooms[rIdx].status != ROOM_MAINTAIN)
                     rooms[rIdx].status = ROOM_EMPTY;
                 break;
         }
     }
 
-    /* Luu lai file rooms.txt sau khi dong bo */
+    
     saveRooms(rooms, roomCount);
 }
 
@@ -61,6 +58,9 @@ int main() {
     int         serviceCount = 0;
     UsedService usedServices[MAX_USED_SERVICES];
     int         usedCount    = 0;
+    Employee employees[MAX_EMPLOYEES];
+    int         employeeCount = 0;
+
 
     // 1. Tai toan bo du lieu tu file text len mang RAM
     roomCount     = loadRooms(rooms);
@@ -68,6 +68,7 @@ int main() {
     bookingCount  = loadBookings(bookings);
     serviceCount  = loadServices(services);
     usedCount     = loadUsedServices(usedServices);
+    employeeCount = loadEmployees(employees);
 
     // ================================================================
     // 2. DONG BO HOA DU LIEU
@@ -77,7 +78,7 @@ int main() {
 
     // 3. Hien thi man hinh chao mung
     showWelcome();
-    printf("  Da tai %d phong | %d khach hang | %d booking (Da dong bo).\n",
+    printf("  Da tai %d phong  | %d khach hang | %d booking (Da dong bo).\n",
            roomCount, customerCount, bookingCount);
     printf("  Da tai %d dich vu | %d ban ghi dich vu da goi.\n",
            serviceCount, usedCount);
@@ -88,7 +89,8 @@ int main() {
              customers,    &customerCount,
              bookings,     &bookingCount,
              usedServices, &usedCount,
-             services,     &serviceCount);  /* <- DOI serviceCount THANH &serviceCount */
+             services,     &serviceCount,
+             employees,    &employeeCount);
 
     return 0;
 }

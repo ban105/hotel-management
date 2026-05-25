@@ -5,6 +5,7 @@
 #include "customer.h"
 #include "booking.h"
 #include "service.h"
+#include "employee.h"
 #include "bill.h"
 
 /* Hien man hinh chao mung */
@@ -18,6 +19,7 @@ void mainMenu(Room rooms[], int *roomCount,
               Customer customers[], int *customerCount,
               Booking bookings[], int *bookingCount,
               UsedService usedServices[], int *usedCount,
-              Service services[], int *serviceCount);
+              Service services[], int *serviceCount,
+              Employee employees[], int *employeeCount);
 
 #endif /* MENU_H */

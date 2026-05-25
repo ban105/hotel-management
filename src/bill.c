@@ -126,21 +126,21 @@ void printBill(Bill *bill,
     fprintf(stream, LINE_D);
     fprintf(stream, "| SDT       : %-41s  |\n", customer->phone);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Hang KH   : %-12s   Giam gia : %3.0f%%              |\n",
+    fprintf(stream, "| Hang KH   : %-11s   Giam gia : %3.0f%%              |\n",
             rankStr(customer->rank), discount * 100);
 
     /* --- Phong --- */
     fprintf(stream, LINE_D);
     fprintf(stream, "| THONG TIN PHONG                                        |\n");
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Phong     : %-10s        Loai : %-18s |\n",
+    fprintf(stream, "| Phong     : %-10s        Loai : %-17s |\n",
             room->id, room->type);
     fprintf(stream, LINE_D);
     fprintf(stream, "| Check-in  : %-41s  |\n", booking->checkInDate);
     fprintf(stream, LINE_D);
     fprintf(stream, "| Check-out : %-41s  |\n", booking->checkOutDate);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| So dem    : %-5d       Don gia : %10.0f VND/dem    |\n",
+    fprintf(stream, "| So dem    : %-5d        Don gia : %10.0f VND/dem  |\n",
             nights, room->price);
 
     /* --- Chi tiet tien phong --- */

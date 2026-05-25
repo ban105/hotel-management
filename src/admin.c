@@ -634,7 +634,8 @@ void menuAdmin(Room rooms[], int *roomCount,
                Customer customers[], int *customerCount,
                Booking bookings[], int *bookingCount,
                UsedService usedServices[], int *usedCount,
-               Service services[], int *serviceCount) {
+               Service services[], int *serviceCount,
+               Employee employees[], int *employeeCount) {
 
     /* Xac thuc truoc khi vao */
     if (!adminLogin()) return;
@@ -643,16 +644,17 @@ void menuAdmin(Room rooms[], int *roomCount,
     do {
         clearScreen();
         adminPrintLine();
-        printf("  |                MENU QUAN TRI VIEN                        |\n");
+        printf("  |                   MENU QUAN TRI VIEN                     |\n");
         adminPrintLine();
         printf("  | 1. Quan ly danh muc dich vu                              |\n");
         printf("  | 2. Bao cao doanh thu tong hop                            |\n");
         printf("  | 3. Thong ke hieu suat dich vu (Best Seller)              |\n");
         printf("  | 4. Doanh thu theo khoang thoi gian                       |\n");
+        printf("  | 5. Quan ly Nhan vien                                     |\n");
         printf("  | 0. Quay lai menu chinh                                   |\n");
         adminPrintLine();
 
-        choice = inputInt("  Chon: ", 0, 4);
+        choice = inputInt("  Chon: ", 0, 5);
 
         switch (choice) {
             case 1:
@@ -702,6 +704,10 @@ void menuAdmin(Room rooms[], int *roomCount,
             case 4:
                 reportRevenueByDateRange();
                 break;
+            
+            case 5:
+                menuEmployee(employees, employeeCount);
+                break;    
 
             case 0:
                 break;

@@ -16,7 +16,7 @@ void searchCustomer(Customer customers[], int count);
 void updateCustomerRank(Customer customers[], int count);
 const char* rankStr(int rank);
 float rankDiscount(int rank);
-/* ---- HĂ m tiá»‡n Ă­ch ---- */
+
 int findCustomerById(Customer customers[], int count, const char *id);
 int findCustomerByPhone(Customer customers[], int count, const char *phone);
 void printCustomer(Customer *c);

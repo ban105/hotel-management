@@ -19,7 +19,8 @@ void mainMenu(Room rooms[], int *roomCount,
               Customer customers[], int *customerCount,
               Booking bookings[], int *bookingCount,
               UsedService usedServices[], int *usedCount,
-              Service services[], int *serviceCount) {
+              Service services[], int *serviceCount,
+              Employee employees[], int *employeeCount) {
 
     int choice;
     do {
@@ -30,11 +31,11 @@ void mainMenu(Room rooms[], int *roomCount,
         printf("| 3. Dat phong / Check-in / Check-out                    |\n");
         printf("| 4. Quan ly Dich vu                                     |\n");
         printf("| 5. Quan ly Hoa don                                     |\n");
-        printf("| 6. Khu vuc Quan tri vien (Admin)                       |\n");   /* <- THEM DONG NAY */
+        printf("| 6. Khu vuc Quan tri vien (Admin)                       |\n");   
         printf("| 0. Thoat chuong trinh                                  |\n");
         printLine(58);
 
-        choice = inputInt("  Chon chuc nang: ", 0, 6);   /* <- DOI 5 THANH 6 */
+        choice = inputInt("  Chon chuc nang: ", 0, 6);   
 
         switch (choice) {
             case 1:
@@ -67,7 +68,8 @@ void mainMenu(Room rooms[], int *roomCount,
                           customers, customerCount,
                           bookings,  bookingCount,
                           usedServices, usedCount,
-                          services,  serviceCount);
+                          services,  serviceCount,
+                          employees, employeeCount);
                 break;
             case 0:
                 clearScreen();

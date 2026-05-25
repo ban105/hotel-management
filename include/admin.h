@@ -1,6 +1,6 @@
 #ifndef ADMIN_H
 #define ADMIN_H
-
+#include "employee.h"
 #include <stdio.h>
 #include "types.h"
 #include "room.h"
@@ -9,48 +9,35 @@
 #include "service.h"
 #include "bill.h"
 
-/* ============================================================
-   HANG SO
-   ============================================================ */
+
 #define ADMIN_PASSWORD     "admin123"
 #define MAX_BILLS          200
 #define ADMIN_LINE_LEN     62
 
-/* ============================================================
-   STRUCT HOA DON LUU FILE (doc tu data/bills.txt)
-   Khac voi struct Bill trong RAM, day la ban ghi da luu
-   ============================================================ */
+
 typedef struct {
-    char billId[10];        /* Ma hoa don: HD001...     */
-    char bookingId[10];     /* Ma booking lien ket      */
-    char checkOutDate[20];  /* Ngay check-out           */
-    float roomCost;         /* Tien phong sau giam      */
-    float serviceCost;      /* Tien dich vu             */
-    float serviceCharge;    /* Phi dich vu 5%           */
-    float vat;              /* Thue VAT 10%             */
-    float total;            /* Tong thanh toan          */
+    char billId[10];        
+    char bookingId[10];     
+    char checkOutDate[20];  
+    float roomCost;         
+    float serviceCost;      
+    float serviceCharge;    
+    float vat;              
+    float total;            
 } BillRecord;
 
-/* ============================================================
-   STRUCT THONG KE DICH VU (dung noi bo de tinh bao cao)
-   ============================================================ */
+
 typedef struct {
-    char serviceId[10];    /* Ma dich vu               */
-    char serviceName[30];  /* Ten dich vu              */
-    int  totalQty;         /* Tong so luong da ban     */
-    float totalRevenue;    /* Tong doanh thu           */
+    char serviceId[10];    
+    char serviceName[30];  
+    int  totalQty;         
+    float totalRevenue;    
 } ServiceStat;
 
-/* ============================================================
-   DANG NHAP ADMIN
-   ============================================================ */
 
-/* Yeu cau nhap mat khau, tra ve 1 neu dung, 0 neu sai */
 int adminLogin();
 
-/* ============================================================
-   QUAN LY DANH MUC DICH VU (CRUD services.txt)
-   ============================================================ */
+
 
 /* Xem toan bo danh muc dich vu */
 void adminViewServices(Service services[], int count);
@@ -112,6 +99,7 @@ void menuAdmin(Room rooms[], int *roomCount,
                Customer customers[], int *customerCount,
                Booking bookings[], int *bookingCount,
                UsedService usedServices[], int *usedCount,
-               Service services[], int *serviceCount);
+               Service services[], int *serviceCount,
+               Employee employees[], int *employeeCount);
 
-#endif /* ADMIN_H */
+#endif 

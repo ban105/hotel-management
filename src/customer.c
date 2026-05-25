@@ -53,15 +53,13 @@ static void printCellWithPadding(const char *str, int width) {
     }
 }
 
-/* ============================
-   IN BẢNG KHÁCH HÀNG (ĐÃ ĐỒNG BỘ ĐỘ RỘNG 84 KÝ TỰ TOÀN LÒNG)
-   ========================================================================= */
+
 static void printTableBorder() {
-    // Độ rộng các cột: 6 + 22 + 13 + 16 + 8 + 9 + các khoảng trống thanh đứng = 84 ký tự lòng trong
+    
     printf("  +--------+----------------------+---------------+------------------+--------+----------+\n");
 }
 
-/* Chỉ in duy nhất khung Banner chữ lớn sạch sẽ ở các hàm Nhập/Sửa/Xóa */
+
 static void printFunctionBanner(const char *title) {
     printf("  +--------------------------------------------------------------------------------------+\n");
     if (title != NULL) {
@@ -76,7 +74,7 @@ static void printFunctionBanner(const char *title) {
     printf("  +--------------------------------------------------------------------------------------+\n");
 }
 
-/* Chỉ in tiêu đề cột khi thực sự hiển thị danh sách - Khớp khít tỉ lệ viền */
+
 static void printCustomerTableHeader() {
     printTableBorder();
     printf("  | %-6s | %-20s | %-13s | %-16s | %-6s | %-6s |\n",

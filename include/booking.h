@@ -47,7 +47,6 @@ int   calcNights(const char *checkIn, const char *checkOut);
 void  getCurrentDateTime(char *dateStr, char *timeStr);
 void  printCheckInReceipt(Booking *b, Room *r, Customer *c);
 
-// ĐÃ XÓA hàm bookingStatusStr khỏi đây vì nó là hàm nội bộ (static) trong file .c
 
 /* ============================================================
    FILE I/O
