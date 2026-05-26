@@ -37,6 +37,18 @@ gcc -Wall -Wextra -std=c11 -Iinclude main.c src\room.c src\customer.c src\bookin
 
 ## Chay chuong trinh
 
+Cach don gian nhat tren Windows:
+
+```powershell
+.\run.bat
+```
+
+Hoac double-click file `run.bat` trong thu muc project.
+
+File nay se tu build lai `hotel.exe` roi chay chuong trinh.
+
+Neu da build san:
+
 ```powershell
 .\hotel.exe
 ```
