@@ -74,10 +74,20 @@ int main() {
 
     // 3. Hien thi man hinh chao mung
     showWelcome();
-    printf("  Da tai %d phong  | %d khach hang | %d booking (Da dong bo).\n",
-           roomCount, customerCount, bookingCount);
-    printf("  Da tai %d dich vu | %d ban ghi dich vu da goi.\n",
-           serviceCount, usedCount);
+    char summaryLine[80];
+
+    printf("  +------------------------------------------+\n");
+    printf("  | TOM TAT DU LIEU                          |\n");
+    printf("  +------------------------------------------+\n");
+    snprintf(summaryLine, sizeof(summaryLine),
+             "%-7s: %-3d | %-6s: %-3d | %-7s: %-3d",
+             "Phong", roomCount, "Khach", customerCount, "Booking", bookingCount);
+    printf("  | %-40.40s |\n", summaryLine);
+    snprintf(summaryLine, sizeof(summaryLine),
+             "%-7s: %-3d | %-6s: %-3d",
+             "Dich vu", serviceCount, "Da goi", usedCount);
+    printf("  | %-40.40s |\n", summaryLine);
+    printf("  +------------------------------------------+\n");
     pauseScreen();
 
     User currentUser;

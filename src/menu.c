@@ -9,10 +9,10 @@
 void showWelcome() {
     clearScreen();
     printf("\n");
-    printLine(56);
-    printf("          ***  HE THONG QUAN LY KHACH SAN  ***\n");
-    printf("            ***      Hotel Manager       ***\n");
-    printLine(56);
+    printf("  +------------------------------------------+\n");
+    printf("  |        HE THONG QUAN LY KHACH SAN        |\n");
+    printf("  |               HOTEL MANAGER              |\n");
+    printf("  +------------------------------------------+\n");
     printf("\n");
 }
 
