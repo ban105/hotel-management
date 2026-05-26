@@ -109,9 +109,8 @@ void listEmployees(Employee employees[], int count) {
         return;
     }
 
-    /* Header bang */
     printf(EMP_DIV);
-    printf("  | %-6s %-18s %-12s %-10s %-5s   %-3s|\n",
+    printf("  | %-6s %-17s %-12s %-10s %8s %-6s|\n",
            "Ma NV", "Ho ten", "Chuc vu", "SDT", "Luong", "T.Thai");
     printf(EMP_DIV);
 
@@ -120,7 +119,7 @@ void listEmployees(Employee employees[], int count) {
     for (int i = 0; i < count; i++) {
         const char *statusStr = (employees[i].status == EMPLOYEE_ACTIVE)
                                 ? "On " : "Off";
-        printf("  | %-6s %-17s %-12s %-11s %-8.0f  %-4s|\n",
+        printf("  | %-6.6s %-17.17s %-12.12s %-10.10s %8.0f   %-4.6s|\n",
                employees[i].empId,
                employees[i].name,
                employees[i].position,
@@ -253,6 +252,7 @@ void editEmployee(Employee employees[], int count) {
     if (isNotEmpty(tmp))
         strncpy(employees[idx].position, tmp,
                 sizeof(employees[idx].position) - 1);
+    employees[idx].position[sizeof(employees[idx].position) - 1] = '\0';
 
     /* Sua so dien thoai */
     printf("  SDT moi [%s]: ", employees[idx].phone);
@@ -260,6 +260,7 @@ void editEmployee(Employee employees[], int count) {
     if (isNotEmpty(tmp))
         strncpy(employees[idx].phone, tmp,
                 sizeof(employees[idx].phone) - 1);
+    employees[idx].phone[sizeof(employees[idx].phone) - 1] = '\0';
 
     /* Sua luong */
     printf("  Luong moi [%.0f]: ", employees[idx].salary);

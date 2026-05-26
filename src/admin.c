@@ -40,29 +40,51 @@ int dateInRange(const char *d, const char *from, const char *to) {
     return (compareDates(d, from) >= 0 && compareDates(d, to) <= 0);
 }
 
-/* ============================================================
-   DANG NHAP ADMIN
-   ============================================================ */
-int adminLogin() {
+int systemLogin(User *user) {
+    char password[30];
+    int roleChoice;
+    int attempts = 0;
+
     clearScreen();
     adminPrintLine();
-    printf("  |                  KHU VUC QUAN TRI VIEN                   |\n");
+    printf("  |                    DANG NHAP HE THONG                    |\n");
     adminPrintLine();
-    printf("  | Yeu cau xac thuc de tiep tuc.                            |\n");
+    printf("  | 1. Le tan                                                |\n");
+    printf("  | 2. Admin                                                 |\n");
+    printf("  | 0. Thoat                                                 |\n");
     adminPrintLine();
 
-    /* An mat khau khi nhap */
-    printf("  Nhap mat khau: ");
-    char pw[30];
-    safeInput(pw, sizeof(pw));
+    roleChoice = inputInt("  Chon vai tro: ", 0, 2);
+    if (roleChoice == 0) return 0;
 
-    if (strcmp(pw, ADMIN_PASSWORD) == 0) {
-        printf("\n  [OK] Dang nhap thanh cong!\n");
-        pauseScreen();
-        return 1;
+    while (attempts < 3) {
+        printf("  Mat khau: ");
+        safeInput(password, sizeof(password));
+        trimStr(password);
+
+        if (roleChoice == 2 && strcmp(password, ADMIN_PASSWORD) == 0) {
+            strcpy(user->username, "admin");
+            strcpy(user->password, password);
+            user->role = ROLE_ADMIN;
+            printf("\n  [OK] Dang nhap Admin thanh cong!\n");
+            pauseScreen();
+            return 1;
+        }
+
+        if (roleChoice == 1 && strcmp(password, RECEPTION_PASSWORD) == 0) {
+            strcpy(user->username, "letan");
+            strcpy(user->password, password);
+            user->role = ROLE_RECEPTIONIST;
+            printf("\n  [OK] Dang nhap Le tan thanh cong!\n");
+            pauseScreen();
+            return 1;
+        }
+
+        attempts++;
+        printf("  [!] Mat khau sai. Con %d lan thu.\n", 3 - attempts);
     }
 
-    printf("\n  [!] Mat khau sai. Quay ve menu chinh.\n");
+    printf("\n  [!] Nhap sai qua 3 lan. Thoat chuong trinh.\n");
     pauseScreen();
     return 0;
 }
@@ -88,7 +110,7 @@ void adminViewServices(Service services[], int count) {
     adminPrintLine();
 
     for (int i = 0; i < count; i++) {
-        printf("  | %-8s %-22s %10.0f  %-12s |\n",
+        printf("  | %-8.8s %-22.22s %10.0f  %-12.12s |\n",
                services[i].serviceId,
                services[i].serviceName,
                services[i].price,
@@ -242,6 +264,7 @@ void adminEditService(Service services[], int *count) {
     if (isNotEmpty(tmp)) {
         strncpy(services[idx].serviceName, tmp,
                 sizeof(services[idx].serviceName) - 1);
+        services[idx].serviceName[sizeof(services[idx].serviceName) - 1] = '\0';
     }
 
     /* Sua don gia */
@@ -258,6 +281,7 @@ void adminEditService(Service services[], int *count) {
     safeInput(tmp, sizeof(tmp));
     if (isNotEmpty(tmp)) {
         strncpy(services[idx].unit, tmp, sizeof(services[idx].unit) - 1);
+        services[idx].unit[sizeof(services[idx].unit) - 1] = '\0';
     }
 
     adminSaveServices(services, *count);
@@ -331,7 +355,7 @@ void adminDeleteService(Service services[], int *count) {
    DOC DANH SACH HOA DON TU FILE data/bills.txt
    ============================================================ */
 int loadBillRecords(BillRecord records[]) {
-    FILE *fp = fopen("bills.txt", "r");
+    FILE *fp = fopen("data/bills.txt", "r");
     if (!fp) return 0;
 
     int count = 0;
@@ -393,19 +417,19 @@ void reportRevenueSummary() {
         grandTotal  += records[i].total;
     }
 
-    printf("  | %-31s     %20s |\n", "Chi tieu", "Gia tri (VND)");
+    printf("  | %-31.31s     %20.20s |\n", "Chi tieu", "Gia tri (VND)");
     adminPrintLine();
-    printf("  | %-31s     %20.0f |\n", "Tong so hoa don da thanh toan:", (float)count);
+    printf("  | %-31.31s     %20.0f |\n", "Tong so hoa don da thanh toan:", (float)count);
     adminPrintLine();
-    printf("  | %-31s     %20.0f |\n", "Tong doanh thu tien phong:", totalRoom);
+    printf("  | %-31.31s     %20.0f |\n", "Tong doanh thu tien phong:", totalRoom);
     adminPrintLine();
-    printf("  | %-31s     %20.0f |\n", "Tong doanh thu tien dich vu:", totalSvc);
+    printf("  | %-31.31s     %20.0f |\n", "Tong doanh thu tien dich vu:", totalSvc);
     adminPrintLine();
-    printf("  | %-31s     %20.0f |\n", "Tong phi dich vu (5%%):", totalCharge);
+    printf("  | %-31.31s     %20.0f |\n", "Tong phi dich vu (5%%):", totalCharge);
     adminPrintLine();
-    printf("  | %-31s     %20.0f |\n", "Tong thue VAT (10%%):", totalVat);
+    printf("  | %-31.31s     %20.0f |\n", "Tong thue VAT (10%%):", totalVat);
     adminPrintLine();
-    printf("  | %-31s     %20.0f |\n", "TONG DOANH THU THUC NHAN:", grandTotal);
+    printf("  | %-31.31s     %20.0f |\n", "TONG DOANH THU THUC NHAN:", grandTotal);
     adminPrintLine();
 
     pauseScreen();
@@ -438,8 +462,10 @@ void reportServicePerformance(Service services[], int serviceCount) {
     for (int i = 0; i < serviceCount; i++) {
         strncpy(stats[i].serviceId,   services[i].serviceId,
                 sizeof(stats[i].serviceId) - 1);
+        stats[i].serviceId[sizeof(stats[i].serviceId) - 1] = '\0';
         strncpy(stats[i].serviceName, services[i].serviceName,
                 sizeof(stats[i].serviceName) - 1);
+        stats[i].serviceName[sizeof(stats[i].serviceName) - 1] = '\0';
         stats[i].totalQty     = 0;
         stats[i].totalRevenue = 0;
     }
@@ -498,7 +524,7 @@ void reportServicePerformance(Service services[], int serviceCount) {
     for (int i = 0; i < statCount; i++) {
         if (stats[i].totalQty == 0) continue; /* Bo qua dich vu chua ban */
 
-        printf("  | %3d  %-8s %-18s %8d %14.0f |\n",
+        printf("  | %3d  %-8.8s %-18.18s %8d %14.0f |\n",
                i + 1,
                stats[i].serviceId,
                stats[i].serviceName,
@@ -516,7 +542,7 @@ void reportServicePerformance(Service services[], int serviceCount) {
     /* In Best Seller */
     if (bestIdx >= 0) {
         printf("  | BEST SELLER: %-44s|\n", "");
-        printf("  | >> [%s] %-20s - %d luot - %.0f VND   |\n",
+        printf("  | >> [%-5.5s] %-18.18s - %3d luot - %9.0f VND |\n",
                stats[bestIdx].serviceId,
                stats[bestIdx].serviceName,
                stats[bestIdx].totalQty,
@@ -584,7 +610,7 @@ void reportRevenueByDateRange() {
     for (int i = 0; i < total; i++) {
         if (!dateInRange(records[i].checkOutDate, fromDate, toDate)) continue;
 
-        printf("  | %-10s %-10s %10.0f %10.0f %12.0f |\n",
+        printf("  | %-10.10s %-10.10s %10.0f %10.0f %12.0f |\n",
                records[i].billId,
                records[i].bookingId,
                records[i].roomCost,
@@ -636,9 +662,14 @@ void menuAdmin(Room rooms[], int *roomCount,
                UsedService usedServices[], int *usedCount,
                Service services[], int *serviceCount,
                Employee employees[], int *employeeCount) {
-
-    /* Xac thuc truoc khi vao */
-    if (!adminLogin()) return;
+    (void)rooms;
+    (void)roomCount;
+    (void)customers;
+    (void)customerCount;
+    (void)bookings;
+    (void)bookingCount;
+    (void)usedServices;
+    (void)usedCount;
 
     int choice;
     do {

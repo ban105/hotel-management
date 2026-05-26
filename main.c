@@ -26,10 +26,6 @@ void syncRoomStatusWithBookings(Room rooms[], int roomCount,
         if (rIdx < 0) continue;
 
         switch (bookings[i].status) {
-            case BOOKING_PENDING:   
-                rooms[rIdx].status = ROOM_OCCUPIED;
-                break;
-
             case BOOKING_CHECKIN:   
                 rooms[rIdx].status = ROOM_OCCUPIED;
                 break;
@@ -84,13 +80,20 @@ int main() {
            serviceCount, usedCount);
     pauseScreen();
 
+    User currentUser;
+    if (!systemLogin(&currentUser)) {
+        printf("\n  Da huy dang nhap. Thoat chuong trinh.\n");
+        return 0;
+    }
+
     // 4. Vao vong lap Menu chinh
     mainMenu(rooms,        &roomCount,
              customers,    &customerCount,
              bookings,     &bookingCount,
              usedServices, &usedCount,
              services,     &serviceCount,
-             employees,    &employeeCount);
+             employees,    &employeeCount,
+             currentUser.role);
 
     return 0;
 }

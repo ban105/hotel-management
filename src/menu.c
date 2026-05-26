@@ -3,6 +3,7 @@
 #include "room.h"
 #include "customer.h"
 #include "booking.h"
+#include "admin.h"
 #include "utils.h"
 
 void showWelcome() {
@@ -20,18 +21,26 @@ void mainMenu(Room rooms[], int *roomCount,
               Booking bookings[], int *bookingCount,
               UsedService usedServices[], int *usedCount,
               Service services[], int *serviceCount,
-              Employee employees[], int *employeeCount) {
+              Employee employees[], int *employeeCount,
+              int currentRole) {
 
     int choice;
     do {
         clearScreen();
         printHeader("MENU CHINH");
-        printf("| 1. Quan ly Phong                                       |\n");
+        printf("| Vai tro: %-46s|\n",
+               currentRole == ROLE_ADMIN ? "Admin" : "Le tan");
+        printLine(58);
+        if (currentRole == ROLE_ADMIN)
+            printf("| 1. Quan ly Phong                                       |\n");
+        else
+            printf("| 1. Quan ly Phong                     (Admin)           |\n");
         printf("| 2. Quan ly Khach hang                                  |\n");
         printf("| 3. Dat phong / Check-in / Check-out                    |\n");
         printf("| 4. Quan ly Dich vu                                     |\n");
         printf("| 5. Quan ly Hoa don                                     |\n");
-        printf("| 6. Khu vuc Quan tri vien (Admin)                       |\n");   
+        if (currentRole == ROLE_ADMIN)
+            printf("| 6. Khu vuc Quan tri vien (Admin)                       |\n");
         printf("| 0. Thoat chuong trinh                                  |\n");
         printLine(58);
 
@@ -39,10 +48,16 @@ void mainMenu(Room rooms[], int *roomCount,
 
         switch (choice) {
             case 1:
+                if (currentRole != ROLE_ADMIN) {
+                    printf("  [!] Chuc nang nay chi danh cho Admin.\n");
+                    pauseScreen();
+                    break;
+                }
                 menuRoom(rooms, roomCount);
                 break;
             case 2:
-                menuCustomer(customers, customerCount);
+                menuCustomer(customers, customerCount,
+                             bookings, *bookingCount);
                 break;
             case 3:
                 menuBooking(bookings, bookingCount,
@@ -63,7 +78,12 @@ void mainMenu(Room rooms[], int *roomCount,
                          usedServices, *usedCount,
                          services, *serviceCount);
                 break;
-            case 6:                                        /* <- THEM CASE NAY */
+            case 6:
+                if (currentRole != ROLE_ADMIN) {
+                    printf("  [!] Chuc nang nay chi danh cho Admin.\n");
+                    pauseScreen();
+                    break;
+                }
                 menuAdmin(rooms,     roomCount,
                           customers, customerCount,
                           bookings,  bookingCount,

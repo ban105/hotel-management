@@ -140,7 +140,7 @@ static void printBookingTableHeader(const char *title) {
 }
 
 static void printBookingRow(Booking *b) {
-    printf("  | %-5s | %-5s | %-5s | %-10s | %-10s | %-8s |\n",
+    printf("  | %-5.5s | %-5.5s | %-5.5s | %-10.10s | %-10.10s | %-8.8s |\n",
            b->bookingId, b->customerId, b->roomId,
            b->checkInDate, b->checkOutDate,
            bookingStatusStr(b->status));
@@ -163,47 +163,47 @@ void printCheckInReceipt(Booking *b, Room *r, Customer *c) {
     printLine(52);
     printf("|          XAC NHAN CHECK-IN THANH CONG            |\n");
     printLine(52);
-    printf("| %-20s : %-25s |\n", "Ma booking",  b->bookingId);
-    printf("| %-20s : %-25s |\n", "Ma hoa don",  billId);
+    printf("| %-20s : %-25.25s |\n", "Ma booking",  b->bookingId);
+    printf("| %-20s : %-25.25s |\n", "Ma hoa don",  billId);
     printLine(52);
-    printf("| %-20s : %-25s |\n", "Ho ten KH",    c->name);
-    printf("| %-20s : %-25s |\n", "Ma KH",       c->id);
+    printf("| %-20s : %-25.25s |\n", "Ho ten KH",    c->name);
+    printf("| %-20s : %-25.25s |\n", "Ma KH",       c->id);
     if (rankDiscount(c->rank) > 0) {
         char rankBuf[30];
         sprintf(rankBuf, "%s (giam %.0f%%)", rankStr(c->rank), discount*100);
-        printf("| %-20s : %-25s |\n", "Hang", rankBuf);
+        printf("| %-20s : %-25.25s |\n", "Hang", rankBuf);
     } else {
-        printf("| %-20s : %-25s |\n", "Hang", rankStr(c->rank));
+        printf("| %-20s : %-25.25s |\n", "Hang", rankStr(c->rank));
     }
     printLine(52);
     char roomBuf[30];
     sprintf(roomBuf, "%s (%s)", r->id, r->type);
-    printf("| %-20s : %-25s |\n", "Phong",      roomBuf);
+    printf("| %-20s : %-25.25s |\n", "Phong",      roomBuf);
     char priceBuf[30];
     sprintf(priceBuf, "%.0f dong/dem", r->price);
-    printf("| %-20s : %-25s |\n", "Gia phong", priceBuf);
+    printf("| %-20s : %-25.25s |\n", "Gia phong", priceBuf);
     printLine(52);
     char ciStr[30];
     sprintf(ciStr, "%s - 13:00", b->checkInDate);
-    printf("| %-20s : %-25s |\n", "Check-in",  ciStr);
+    printf("| %-20s : %-25.25s |\n", "Check-in",  ciStr);
     char coStr[30];
     sprintf(coStr, "%s (du kien)", b->checkOutDate);
-    printf("| %-20s : %-25s |\n", "Check-out", coStr);
+    printf("| %-20s : %-25.25s |\n", "Check-out", coStr);
     char nightBuf[20];
     sprintf(nightBuf, "%d dem", nights);
-    printf("| %-20s : %-25s |\n", "So dem",    nightBuf);
+    printf("| %-20s : %-25.25s |\n", "So dem",    nightBuf);
     printLine(52);
     char rcBuf[30];
     sprintf(rcBuf, "%.0f dong", roomCost);
-    printf("| %-20s : %-25s |\n", "Tien phong",  rcBuf);
+    printf("| %-20s : %-25.25s |\n", "Tien phong",  rcBuf);
     if (discAmt > 0) {
         char daBuf[30];
         sprintf(daBuf, "%.0f dong", discAmt);
-        printf("| %-20s : %-25s |\n", "Giam gia", daBuf);
+        printf("| %-20s : %-25.25s |\n", "Giam gia", daBuf);
     }
     char estBuf[30];
     sprintf(estBuf, "%.0f dong", estimate);
-    printf("| %-20s : %-25s |\n", "Du kien tra", estBuf);
+    printf("| %-20s : %-25.25s |\n", "Du kien tra", estBuf);
     printLine(52);
     printf("|   Luu y: Chua bao gom dich vu phat sinh          |\n");
     printLine(52);
@@ -217,6 +217,30 @@ int findBookingById(Booking bookings[], int count, const char *id) {
     for (int i = 0; i < count; i++)
         if (strcmp(bookings[i].bookingId, id) == 0) return i;
     return -1;
+}
+
+static int bookingDatesOverlap(const char *newIn, const char *newOut,
+                               const char *oldIn, const char *oldOut) {
+    return dateToInt(newIn) < dateToInt(oldOut) &&
+           dateToInt(newOut) > dateToInt(oldIn);
+}
+
+static int isRoomFreeInDateRange(Booking bookings[], int bookingCount,
+                                 const char *roomId,
+                                 const char *checkIn,
+                                 const char *checkOut) {
+    for (int i = 0; i < bookingCount; i++) {
+        if (strcmp(bookings[i].roomId, roomId) != 0) continue;
+        if (bookings[i].status == BOOKING_DONE ||
+            bookings[i].status == BOOKING_CANCEL) continue;
+
+        if (bookingDatesOverlap(checkIn, checkOut,
+                                bookings[i].checkInDate,
+                                bookings[i].checkOutDate)) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 /* ============================
@@ -250,36 +274,58 @@ void addBooking(Booking bookings[], int *bookingCount,
     int cIdx = findCustomerById(customers, customerCount, b.customerId);
     printf("  Khach hang : %s - Hang %s\n\n",
            customers[cIdx].name, rankStr(customers[cIdx].rank));
-           
-    printf("  Danh sach phong trong thuc te:\n");
+
+    do {
+        printf("  Ngay check-in (DD/MM/YYYY): ");
+        safeInput(b.checkInDate, sizeof(b.checkInDate));
+        trimStr(b.checkInDate);
+
+        if (!isValidDate(b.checkInDate)) {
+            printf("  [!] Dinh dang ngay thang khong hop le!\n");
+        } else if (isPastDate(b.checkInDate)) {
+            printf("  [!] Khong duoc dat phong trong qua khu!\n");
+            b.checkInDate[0] = '\0';
+        }
+    } while (!isValidDate(b.checkInDate));
+
+    do {
+        printf("  Ngay check-out (DD/MM/YYYY): ");
+        safeInput(b.checkOutDate, sizeof(b.checkOutDate));
+        trimStr(b.checkOutDate);
+
+        if (!isValidDate(b.checkOutDate)) {
+            printf("  [!] Dinh dang ngay thang khong hop le!\n");
+        } else if (isPastDate(b.checkOutDate)) {
+            printf("  [!] Ngay check-out khong the o trong qua khu!\n");
+        } else if (dateToInt(b.checkOutDate) <= dateToInt(b.checkInDate)) {
+            printf("  [!] Ngay check-out phai sau ngay check-in!\n");
+        } else {
+            break;
+        }
+    } while (1);
+
+    printf("\n  Danh sach phong trong tu %s den %s:\n",
+           b.checkInDate, b.checkOutDate);
     printf("  +----------+----------+---------------+\n");
     printf("  | %-8s | %-8s | %13s |\n", "Ma phong", "Loai", "Gia/dem (d)");
     printf("  +----------+----------+---------------+\n");
     
     int hasEmpty = 0;
     for (int i = 0; i < roomCount; i++) {
-        if (rooms[i].status == ROOM_EMPTY) {
-            int isAlreadyBooked = 0;
-            for (int j = 0; j < *bookingCount; j++) {
-                if (strcmp(bookings[j].roomId, rooms[i].id) == 0 && 
-                    (bookings[j].status == BOOKING_PENDING || bookings[j].status == BOOKING_CHECKIN)) {
-                    isAlreadyBooked = 1;
-                    break;
-                }
-            }
-            if (!isAlreadyBooked) {
-                printf("  | %-8s | %-8s | %13.0f |\n",
-                       rooms[i].id, rooms[i].type, rooms[i].price);
-                hasEmpty++;
-            }
+        if (rooms[i].status != ROOM_MAINTAIN &&
+            isRoomFreeInDateRange(bookings, *bookingCount, rooms[i].id,
+                                  b.checkInDate, b.checkOutDate)) {
+            printf("  | %-8.8s | %-8.8s | %13.0f |\n",
+                   rooms[i].id, rooms[i].type, rooms[i].price);
+            hasEmpty++;
         }
     }
     printf("  +----------+----------+---------------+\n");
     if (hasEmpty == 0) {
-        printf("  [!] Hien tai khong co phong nao trong thuc te!\n");
+        printf("  [!] Khong co phong trong trong khoang ngay nay!\n");
         pauseScreen(); return;
     }
-    printf("  Co %d phong trong co the dat.\n\n", hasEmpty);
+    printf("  Co %d phong co the dat.\n\n", hasEmpty);
 
     do {
         printf("  Ma phong (P101...): ");
@@ -291,21 +337,14 @@ void addBooking(Booking bookings[], int *bookingCount,
             printf("  [!] Khong tim thay phong '%s'!\n", b.roomId);
             b.roomId[0] = '\0'; continue;
         }
-        if (rooms[rIdx].status != ROOM_EMPTY) {
-            printf("  [!] Phong '%s' dang co khach o hoac dang bao tri!\n", b.roomId);
+        if (rooms[rIdx].status == ROOM_MAINTAIN) {
+            printf("  [!] Phong '%s' dang bao tri!\n", b.roomId);
             b.roomId[0] = '\0'; continue;
         }
-        
-        int isAlreadyBooked = 0;
-        for (int j = 0; j < *bookingCount; j++) {
-            if (strcmp(bookings[j].roomId, b.roomId) == 0 && 
-                (bookings[j].status == BOOKING_PENDING || bookings[j].status == BOOKING_CHECKIN)) {
-                isAlreadyBooked = 1;
-                break;
-            }
-        }
-        if (isAlreadyBooked) {
-            printf("  [!] Phong '%s' da co khach dat truoc (Trang thai: Da dat)!\n", b.roomId);
+
+        if (!isRoomFreeInDateRange(bookings, *bookingCount, b.roomId,
+                                   b.checkInDate, b.checkOutDate)) {
+            printf("  [!] Phong '%s' da co booking trung khoang ngay nay!\n", b.roomId);
             b.roomId[0] = '\0';
         }
         
@@ -314,35 +353,6 @@ void addBooking(Booking bookings[], int *bookingCount,
     int rIdx = findRoomById(rooms, roomCount, b.roomId);
     printf("  Phong      : %s (%s) - %.0f dong/dem\n\n",
            rooms[rIdx].id, rooms[rIdx].type, rooms[rIdx].price);
-
-    do {
-        printf("  Ngay check-in (DD/MM/YYYY): ");
-        safeInput(b.checkInDate, sizeof(b.checkInDate));
-        trimStr(b.checkInDate);
-        
-        if (!isValidDate(b.checkInDate)) {
-            printf("  [!] Dinh dang ngay thang khong hop le!\n");
-        } else if (isPastDate(b.checkInDate)) {
-            printf("  [!] Khong duoc dat phong trong qua khu!\n");
-            b.checkInDate[0] = '\0'; 
-        }
-    } while (!isValidDate(b.checkInDate));
-
-    do {
-        printf("  Ngay check-out (DD/MM/YYYY): ");
-        safeInput(b.checkOutDate, sizeof(b.checkOutDate));
-        trimStr(b.checkOutDate);
-        
-        if (!isValidDate(b.checkOutDate)) {
-            printf("  [!] Dinh dang ngay thang khong hop le!\n");
-        } else if (isPastDate(b.checkOutDate)) {
-            printf("  [!] Ngay check-out khong the o trong qua khu!\n");
-        } else if (dateToInt(b.checkOutDate) <= dateToInt(b.checkInDate)) {
-            printf("  [!] Ngay check-out phai sau ngay check-in!\n");
-        } else {
-            break; 
-        }
-    } while (1);
 
     int nights = calcNights(b.checkInDate, b.checkOutDate);
     float total = rooms[rIdx].price * nights;
@@ -406,6 +416,21 @@ void cancelBooking(Booking bookings[], int bookingCount,
     }
 
     bookings[idx].status = BOOKING_CANCEL;
+    int rIdx = findRoomById(rooms, roomCount, bookings[idx].roomId);
+    int hasCheckedInSameRoom = 0;
+    for (int i = 0; i < bookingCount; i++) {
+        if (i == idx) continue;
+        if (strcmp(bookings[i].roomId, bookings[idx].roomId) == 0 &&
+            bookings[i].status == BOOKING_CHECKIN) {
+            hasCheckedInSameRoom = 1;
+            break;
+        }
+    }
+    if (rIdx >= 0 && rooms[rIdx].status != ROOM_MAINTAIN &&
+        !hasCheckedInSameRoom) {
+        rooms[rIdx].status = ROOM_EMPTY;
+        saveRooms(rooms, roomCount);
+    }
     saveBookings(bookings, bookingCount);
     printf("  [OK] Da huy booking %s!\n", id);
     pauseScreen();
@@ -494,6 +519,11 @@ void checkOut(Booking bookings[], int bookingCount,
 
     int rIdx = findRoomById(rooms, roomCount, bookings[bIdx].roomId);
     int cIdx = findCustomerById(customers, customerCount, bookings[bIdx].customerId);
+    if (rIdx == -1 || cIdx == -1) {
+        printf("  [!] Loi du lieu phong hoac khach hang!\n");
+        pauseScreen();
+        return;
+    }
 
     int nights    = calcNights(bookings[bIdx].checkInDate, bookings[bIdx].checkOutDate);
     float roomCost = rooms[rIdx].price * nights;
@@ -510,21 +540,21 @@ void checkOut(Booking bookings[], int bookingCount,
     printf("  |                THONG TIN CHECK-OUT               |\n");
     printf("  ");printLine(52);
     
-    printf("  | %-14s : %-31s |\n", "Ma booking", bookings[bIdx].bookingId);
-    printf("  | %-14s : %-31s |\n", "Ma hoa don", billId);
+    printf("  | %-14s : %-31.31s |\n", "Ma booking", bookings[bIdx].bookingId);
+    printf("  | %-14s : %-31.31s |\n", "Ma hoa don", billId);
     
     printf("  ");printLine(52);
-    printf("  | %-14s : %-31s |\n", "Ho ten KH", customers[cIdx].name);
-    printf("  | %-14s : %-31s |\n", "Ma KH", bookings[bIdx].customerId);
+    printf("  | %-14s : %-31.31s |\n", "Ho ten KH", customers[cIdx].name);
+    printf("  | %-14s : %-31.31s |\n", "Ma KH", bookings[bIdx].customerId);
     
     char rankInfo[50];
     sprintf(rankInfo, "%s (giam %.0f%%)", rankStr(customers[cIdx].rank), discount * 100);
-    printf("  | %-14s : %-31s |\n", "Hang", rankInfo);
+    printf("  | %-14s : %-31.31s |\n", "Hang", rankInfo);
     
     printf("  ");printLine(52);
     char roomTypeInfo[50];
     sprintf(roomTypeInfo, "%s (%s)", rooms[rIdx].id, rooms[rIdx].type);
-    printf("  | %-14s : %-31s |\n", "Phong", roomTypeInfo);
+    printf("  | %-14s : %-31.31s |\n", "Phong", roomTypeInfo);
     printf("  | %-14s : %-22.0f dong/dem |\n", "Gia phong", rooms[rIdx].price);
     
     printf("  ");printLine(52);
@@ -533,12 +563,12 @@ void checkOut(Booking bookings[], int bookingCount,
     sprintf(checkInWithTime, "%s - 13:00", bookings[bIdx].checkInDate);
     sprintf(checkOutWithTime, "%s - 12:00", bookings[bIdx].checkOutDate);
 
-    printf("  | %-14s : %-31s |\n", "Check-in", checkInWithTime);
-    printf("  | %-14s : %-31s |\n", "Check-out", checkOutWithTime);
+    printf("  | %-14s : %-31.31s |\n", "Check-in", checkInWithTime);
+    printf("  | %-14s : %-31.31s |\n", "Check-out", checkOutWithTime);
     
     char nightStr[20];
     sprintf(nightStr, "%d dem", nights);
-    printf("  | %-14s : %-31s |\n", "So dem", nightStr);
+    printf("  | %-14s : %-31.31s |\n", "So dem", nightStr);
     
     printf("  ");printLine(52);
     printf("  | %-14s : %-26.0f dong |\n", "Tien phong", roomCost);
@@ -573,6 +603,11 @@ void checkOut(Booking bookings[], int bookingCount,
 void listBookings(Booking bookings[], int count,
                   Customer customers[], int customerCount,
                   Room rooms[], int roomCount) {
+    (void)customers;
+    (void)customerCount;
+    (void)rooms;
+    (void)roomCount;
+
     clearScreen();
     printBookingTableHeader("DANH SACH BOOKING");
 

@@ -116,18 +116,23 @@ void trimStr(char *str) {
     if (start > 0) memmove(str, str + start, strlen(str) - start + 1);
 }
 
-void safeInput(char *buffer, int size) {
+int safeInput(char *buffer, int size) {
     if (fgets(buffer, size, stdin) != NULL) {
         buffer[strcspn(buffer, "\n")] = '\0';
+        return 1;
     }
+    if (size > 0) buffer[0] = '\0';
+    return 0;
 }
 
 int inputInt(const char *prompt, int min, int max) {
     int value;
-    char buf[20];
+        char buf[20];
     while (1) {
         printf("%s", prompt);
-        safeInput(buf, sizeof(buf));
+        if (!safeInput(buf, sizeof(buf))) {
+            return min;
+        }
         if (isNumeric(buf)) {
             value = atoi(buf);
             if (value >= min && value <= max) return value;
@@ -141,7 +146,9 @@ float inputFloat(const char *prompt, float min) {
     float value;
     while (1) {
         printf("%s", prompt);
-        safeInput(buf, sizeof(buf));
+        if (!safeInput(buf, sizeof(buf))) {
+            return min;
+        }
         if (sscanf(buf, "%f", &value) == 1 && value >= min) {
             return value;
         }

@@ -72,7 +72,7 @@ void listServices(Service services[], int count) {
     printLine(58);
 
     for (int i = 0; i < count; i++) {
-        printf("| %-8s %-23s %10.0f     %-7s|\n",
+        printf("| %-8.8s %-23.23s %10.0f     %-7.7s|\n",
                services[i].serviceId,
                services[i].serviceName,
                services[i].price,
@@ -197,7 +197,9 @@ void addUsedService(UsedService usedServices[], int *usedCount,
         } else {
             /* Them moi vao gio */
             strncpy(tempCart[cartCount].bookingId, bkId, sizeof(tempCart[cartCount].bookingId) - 1);
+            tempCart[cartCount].bookingId[sizeof(tempCart[cartCount].bookingId) - 1] = '\0';
             strncpy(tempCart[cartCount].serviceId, svcId, sizeof(tempCart[cartCount].serviceId) - 1);
+            tempCart[cartCount].serviceId[sizeof(tempCart[cartCount].serviceId) - 1] = '\0';
             tempCart[cartCount].quantity = qty;
             tempCart[cartCount].status   = SERVICE_ACTIVE;
             cartCount++;
@@ -225,7 +227,7 @@ void addUsedService(UsedService usedServices[], int *usedCount,
         if (svcIdx < 0) continue;
         float subtotal = services[svcIdx].price * tempCart[i].quantity;
         cartTotal += subtotal;
-        printf("  %-8s %-22s %5d %12.0f\n",
+        printf("  %-8.8s %-22.22s %5d %12.0f\n",
                tempCart[i].serviceId,
                services[svcIdx].serviceName,
                tempCart[i].quantity,
@@ -294,9 +296,10 @@ void cancelUsedService(UsedService usedServices[], int usedCount,
             if (svcIdx >= 0) {
                 subtotal = services[svcIdx].price * usedServices[i].quantity;
                 strncpy(svcName, services[svcIdx].serviceName, sizeof(svcName) - 1);
+                svcName[sizeof(svcName) - 1] = '\0';
             }
 
-            printf("  %-5d %-8s %-22s %5d %12.0f\n",
+            printf("  %-5d %-8.8s %-22.22s %5d %12.0f\n",
                    ++found,
                    usedServices[i].serviceId,
                    svcName,
@@ -364,17 +367,17 @@ void viewUsedServicesByBooking(UsedService usedServices[], int usedCount,
     /* In thong tin booking */
     int cuIdx = findCustomerById(customers, customerCount, bookings[bkIdx].customerId);
     printf("\n");
-printLine(58);
-printf("| %-13s : %-39s|\n", "Booking", bookings[bkIdx].bookingId);
-if (cuIdx >= 0)
-    printf("| %-13s : %-39s|\n", "Khach", customers[cuIdx].name);
-printf("| %-13s : %-39s|\n", "Check-in", bookings[bkIdx].checkInDate);
-printf("| %-13s : %-39s|\n", "Check-out", bookings[bkIdx].checkOutDate);
-printLine(58);
+    printLine(58);
+    printf("| %-13s : %-39.39s|\n", "Booking", bookings[bkIdx].bookingId);
+    if (cuIdx >= 0)
+        printf("| %-13s : %-39.39s|\n", "Khach", customers[cuIdx].name);
+    printf("| %-13s : %-39.39s|\n", "Check-in", bookings[bkIdx].checkInDate);
+    printf("| %-13s : %-39.39s|\n", "Check-out", bookings[bkIdx].checkOutDate);
+    printLine(58);
 
-printf("| %-8s %-18s %4s %8s   %-11s|\n",
-       "Ma DV", "Ten DV", "SL", "Don gia", "Trang thai");
-printLine(58);
+    printf("| %-8s %-18s %4s %8s   %-11s|\n",
+           "Ma DV", "Ten DV", "SL", "Don gia", "Trang thai");
+    printLine(58);
 
 float total = 0;
 int found   = 0;
@@ -388,13 +391,14 @@ for (int i = 0; i < usedCount; i++) {
     if (svcIdx >= 0) {
         price = services[svcIdx].price;
         strncpy(name, services[svcIdx].serviceName, sizeof(name) - 1);
+        name[sizeof(name) - 1] = '\0';
     }
 
     float subtotal = price * usedServices[i].quantity;
     const char *statusStr = (usedServices[i].status == SERVICE_ACTIVE)
                             ? "Hoat dong" : "Da huy   ";
 
-    printf("| %-8s %-18s %4d %8.0f   %-10s |\n",
+    printf("| %-8.8s %-18.18s %4d %8.0f   %-10.10s |\n",
            usedServices[i].serviceId,
            name,
            usedServices[i].quantity,

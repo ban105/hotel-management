@@ -20,6 +20,7 @@ void mainMenu(Room rooms[], int *roomCount,
               Booking bookings[], int *bookingCount,
               UsedService usedServices[], int *usedCount,
               Service services[], int *serviceCount,
-              Employee employees[], int *employeeCount);
+              Employee employees[], int *employeeCount,
+              int currentRole);
 
 #endif /* MENU_H */

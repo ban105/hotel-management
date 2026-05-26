@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "room.h"
+#include "booking.h"
 #include "utils.h"
 
 /* =============================================
@@ -9,6 +11,17 @@
    ============================================= */
 
 #define ROOM_FILE "data/rooms.txt"
+
+static int equalsIgnoreCase(const char *a, const char *b) {
+    while (*a && *b) {
+        if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
+            return 0;
+        }
+        a++;
+        b++;
+    }
+    return *a == '\0' && *b == '\0';
+}
 
 /* ============================
    HÀM HIỂN THỊ NỘI BỘ
@@ -59,7 +72,7 @@ static void printRoomTableFooter() {
 
 /* In 1 dòng phòng trong bảng */
 static void printRoomRow(int stt, Room *r) {
-    printf("  | %-3d | %-8s | %-8s | %13.0f | %-10s |\n",
+    printf("  | %-3d | %-8.8s | %-8.8s | %13.0f | %-10.10s |\n",
            stt, r->id, r->type, r->price, statusStr(r->status));
 }
 
@@ -227,6 +240,18 @@ void deleteRoom(Room rooms[], int *count) {
         return;
     }
 
+    Booking bookings[MAX_BOOKINGS];
+    int bookingCount = loadBookings(bookings);
+    for (int i = 0; i < bookingCount; i++) {
+        if (strcmp(bookings[i].roomId, id) == 0 &&
+            (bookings[i].status == BOOKING_PENDING ||
+             bookings[i].status == BOOKING_CHECKIN)) {
+            printf("  [!] Phong dang co booking active! Khong the xoa.\n");
+            pauseScreen();
+            return;
+        }
+    }
+
     printf("\n  Phong se bi xoa:\n");
     printRoom(&rooms[idx]);
 
@@ -321,7 +346,7 @@ void searchRoom(Room rooms[], int count) {
         safeInput(type, sizeof(type));
         trimStr(type);
         for (int i = 0; i < count; i++) {
-            if (strcasecmp(rooms[i].type, type) == 0) {
+            if (equalsIgnoreCase(rooms[i].type, type)) {
                 printRoomRow(++found, &rooms[i]);
             }
         }

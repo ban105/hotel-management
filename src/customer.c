@@ -2,16 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include "customer.h"
+#include "booking.h"
 #include "utils.h"
 
 /* =============================================
-   CUSTOMER.C - Fix lỗi lệch bảng, trùng lặp & lưu file
+   CUSTOMER.C - Quan ly khach hang
    ============================================= */
 
 #define CUSTOMER_FILE "data/customers.txt"
 
 /* ============================
-   HÀM TIỆN ÍCH HẠNG THÀNH VIÊN
+   TIEN ICH HANG THANH VIEN
    ============================ */
 const char* rankStr(int rank) {
     switch (rank) {
@@ -30,9 +31,7 @@ float rankDiscount(int rank) {
     }
 }
 
-/* =========================================================================
-   HÀM PHỤ TRỢ: TỰ ĐỘNG BÙ KHOẢNG TRẮNG CHỐNG LỆCH TIẾNG VIỆT CÓ DẤU
-   ========================================================================= */
+/* Dem ky tu UTF-8 de can bang cot. */
 static int countUtf8Characters(const char *str) {
     int count = 0;
     while (*str) {
@@ -45,9 +44,11 @@ static int countUtf8Characters(const char *str) {
 }
 
 static void printCellWithPadding(const char *str, int width) {
-    int visibleChars = countUtf8Characters(str);
+    char clipped[128];
+    snprintf(clipped, sizeof(clipped), "%.*s", width, str);
+    int visibleChars = countUtf8Characters(clipped);
     int paddingNeeded = width - visibleChars;
-    printf("%s", str);
+    printf("%s", clipped);
     for (int i = 0; i < paddingNeeded; i++) {
         printf(" ");
     }
@@ -91,11 +92,9 @@ static void printCustomerRow(Customer *c) {
     char discStr[10];
     if (disc > 0) sprintf(discStr, "%.0f%%", disc);
     else          sprintf(discStr, "-");
-    
-    // Cột Ma KH: %-6s, Họ tên: dùng hàm padding với độ rộng cố định 20, các cột sau khớp định dạng header
     printf("  | %-6s | ", c->id);
     printCellWithPadding(c->name, 20);
-    printf(" | %-13s | %-16s | %-6s | %-6s   |\n",
+    printf(" | %-13.13s | %-16.16s | %-6.6s | %-8.8s |\n",
            c->phone, c->cccd, rankStr(c->rank), discStr);
 }
 
@@ -120,9 +119,7 @@ int findCustomerByPhone(Customer customers[], int count, const char *phone) {
     return -1;
 }
 
-/* ============================
-   TẠO MÃ KHÁCH HÀNG TỰ ĐỘNG
-   ============================ */
+/* Tao ma khach hang tu dong. */
 static void generateCustomerId(Customer customers[], int count, char *id) {
     int maxNum = 0;
     for (int i = 0; i < count; i++) {
@@ -266,101 +263,65 @@ void editCustomer(Customer customers[], int count) {
 /* ============================
    XÓA KHÁCH HÀNG
    ============================ */
-void deleteCustomer(Customer customers[], int count) {
+void deleteCustomer(Customer customers[], int *count,
+                    Booking bookings[], int bookingCount) {
     clearScreen();
     printFunctionBanner("XOA KHACH HANG");
 
     char id[15];
-    printf("\n  Nhap ma khach hang can xoa (vi du: KH008): ");
-    safeInput(id, sizeof(id)); trimStr(id);
+    printf("\n  Nhap ma khach hang can xoa (vi du: KH001): ");
+    safeInput(id, sizeof(id));
+    trimStr(id);
 
-    // --- BƯỚC 1: XÓA KHÁCH HÀNG TRONG FILE CUSTOMERS.TXT ---
-    FILE *fCust = fopen("data/customers.txt", "r");
-    if (fCust == NULL) {
-        printf("  [!] Khong the mo file data/customers.txt!\n");
-        pauseScreen(); return;
+    int idx = findCustomerById(customers, *count, id);
+    if (idx == -1) {
+        printf("  [!] Khong tim thay khach hang '%s'!\n", id);
+        pauseScreen();
+        return;
     }
 
-    typedef struct {
-        char maKH[20], hoTen[50], dienThoai[20], cccd[20];
-        int hang; // Hạng thành viên dạng số của bạn (1: Silver, 2: Gold...)
-    } CustTemp;
+    printf("\n  Khach hang se bi xoa:\n");
+    printCustomer(&customers[idx]);
 
-    CustTemp cList[500];
-    int cCount = 0;
-    char line[256];
-    int foundCustomer = 0;
-
-    // Đọc chính xác theo định dạng lưu file khách hàng của bạn
-    while (fgets(line, sizeof(line), fCust)) {
-        if (sscanf(line, "%[^,],%[^,],%[^,],%[^,],%d", 
-                   cList[cCount].maKH, cList[cCount].hoTen, cList[cCount].dienThoai, 
-                   cList[cCount].cccd, &cList[cCount].hang) == 5) {
-            
-            if (strcmp(cList[cCount].maKH, id) == 0) {
-                foundCustomer = 1; 
-                continue; // Bỏ qua không nạp vào mảng => Xóa
-            }
-            cCount++;
-        }
-    }
-    fclose(fCust);
-
-    if (!foundCustomer) {
-        printf("  [!] Khong tim thay khach hang '%s' hoac ma nay khong ton tai trong file txt!\n", id);
-        pauseScreen(); return;
-    }
-
-    // Ghi đè lại file khách hàng sạch dữ liệu lỗi
-    FILE *fCustWrite = fopen("data/customers.txt", "w");
-    if (fCustWrite != NULL) {
-        for (int i = 0; i < cCount; i++) {
-            fprintf(fCustWrite, "%s,%s,%s,%s,%d\n", 
-                    cList[i].maKH, cList[i].hoTen, cList[i].dienThoai, cList[i].cccd, cList[i].hang);
-        }
-        fclose(fCustWrite);
-    }
-
-    // --- BƯỚC 2: CẬP NHẬT FILE BOOKING THEO MÃ SỐ (ĐỔI THÀNH TRẠNG THÁI 3) ---
-    FILE *fBook = fopen("data/bookings.txt", "r");
-    if (fBook != NULL) {
-        typedef struct {
-            char maBK[15], maKH[15], maPhong[15], checkIn[15], checkOut[15];
-            int trangThaiNum; // Lưu trạng thái dạng số (0: Da dat, 1: Dang o, 3: Da huy)
-        } BookTemp;
-
-        BookTemp bList[1000];
-        int bCount = 0;
-
-        while (fgets(line, sizeof(line), fBook)) {
-            // Đọc trạng thái cuối cùng dưới dạng số %d
-            if (sscanf(line, "%[^,],%[^,],%[^,],%[^,],%[^,],%d", 
-                       bList[bCount].maBK, bList[bCount].maKH, bList[bCount].maPhong, 
-                       bList[bCount].checkIn, bList[bCount].checkOut, &bList[bCount].trangThaiNum) == 6) {
-                
-                // Nếu booking thuộc về khách vừa xóa, chuyển số trạng thái thành 3 (Hủy)
-                if (strcmp(bList[bCount].maKH, id) == 0) {
-                    bList[bCount].trangThaiNum = 3; 
-                }
-                bCount++;
-            }
-        }
-        fclose(fBook);
-
-        // Ghi lại file bookings.txt chuẩn hóa số 100%
-        FILE *fBookWrite = fopen("data/bookings.txt", "w");
-        if (fBookWrite != NULL) {
-            for (int i = 0; i < bCount; i++) {
-                fprintf(fBookWrite, "%s,%s,%s,%s,%s,%d\n", 
-                        bList[i].maBK, bList[i].maKH, bList[i].maPhong, 
-                        bList[i].checkIn, bList[i].checkOut, bList[i].trangThaiNum);
-            }
-            fclose(fBookWrite);
-            printf("  [-] Cac phong dat lien quan den ma %s da duoc tu dong HUY (Ma so 3)!\n", id);
+    for (int i = 0; i < bookingCount; i++) {
+        if (strcmp(bookings[i].customerId, id) == 0 &&
+            bookings[i].status == BOOKING_CHECKIN) {
+            printf("  [!] Khach hang dang check-in, khong the xoa.\n");
+            pauseScreen();
+            return;
         }
     }
 
-    printf("  [OK] Da xoa hoan toan khach hang %s khoi he thong!\n", id);
+    printf("  Xac nhan xoa? (y/n): ");
+    char confirm[5];
+    safeInput(confirm, sizeof(confirm));
+    if (confirm[0] != 'y' && confirm[0] != 'Y') {
+        printf("  Da huy thao tac.\n");
+        pauseScreen();
+        return;
+    }
+
+    for (int i = idx; i < *count - 1; i++) {
+        customers[i] = customers[i + 1];
+    }
+    (*count)--;
+    saveCustomers(customers, *count);
+
+    int canceled = 0;
+    for (int i = 0; i < bookingCount; i++) {
+        if (strcmp(bookings[i].customerId, id) == 0 &&
+            bookings[i].status == BOOKING_PENDING) {
+            bookings[i].status = BOOKING_CANCEL;
+            canceled++;
+        }
+    }
+
+    if (canceled > 0) {
+        saveBookings(bookings, bookingCount);
+        printf("  [-] Da tu dong huy %d booking active cua khach hang nay.\n", canceled);
+    }
+
+    printf("  [OK] Da xoa khach hang %s khoi he thong!\n", id);
     pauseScreen();
 }
 
@@ -517,15 +478,12 @@ void saveCustomers(Customer customers[], int count) {
     fclose(fp);
 }
 
-/* ============================
-   ĐỌC TỪ FILE (Đã xử lý chống lặp vô hạn bản ghi cuối)
-   ============================ */
+/* Doc khach hang tu file. */
 int loadCustomers(Customer customers[]) {
     FILE *fp = fopen(CUSTOMER_FILE, "r");
     if (!fp) return 0;
     int count = 0;
     while (count < MAX_CUSTOMERS) {
-        // Kiểm tra EOF nghiêm ngặt để chặn đứng việc đọc lặp lại dòng cuối cùng
         if (feof(fp)) break; 
         
         int r = fscanf(fp, "%9[^,],%49[^,],%14[^,],%19[^,],%d\n",
@@ -550,7 +508,8 @@ int loadCustomers(Customer customers[]) {
 /* ============================
    MENU QUẢN LÝ KHÁCH HÀNG
    ============================ */
-void menuCustomer(Customer customers[], int *count) {
+void menuCustomer(Customer customers[], int *count,
+                  Booking bookings[], int bookingCount) {
     int choice;
     do {
         clearScreen();
@@ -570,7 +529,8 @@ void menuCustomer(Customer customers[], int *count) {
             case 1: listCustomers(customers, *count);     break;
             case 2: addCustomer(customers, count);        break;
             case 3: editCustomer(customers, *count);      break;
-            case 4: deleteCustomer(customers, *count);    break;
+            case 4: deleteCustomer(customers, count,
+                                    bookings, bookingCount); break;
             case 5: searchCustomer(customers, *count);    break;
             case 6: updateCustomerRank(customers, *count); break;
             case 0: break;

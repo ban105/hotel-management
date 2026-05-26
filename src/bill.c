@@ -5,26 +5,20 @@
 #include "utils.h"
 
 /* ============================================================
-   HÀM BỔ SUNG: GHI DỮ LIỆU THUẦN VÀO bills.txt ĐỂ BÁO CÁO DOANH THU
+   HAM BO SUNG: GHI DU LIEU THUAN VAO data/bills.txt DE BAO CAO DOANH THU
    ============================================================ */
 void saveBillRecord(Bill *bill, Booking *booking) {
-    // Mở file ở chế độ "a" (append) tại gốc thư mục thực thi (output/)
-    FILE *fp = fopen("bills.txt", "a");
+    FILE *fp = fopen("data/bills.txt", "a");
     if (!fp) {
-        printf("  [!] Khong the mo hoac tao file bills.txt de ghi nhan doanh thu!\n");
+        printf("  [!] Khong the mo hoac tao file data/bills.txt de ghi nhan doanh thu!\n");
         return;
     }
-
-    // Lấy ngày check-out thực tế của hóa đơn
     char dateStr[20], timeStr[20];
     getCurrentDateTime(dateStr, timeStr);
-
-    // Ghi dữ liệu dạng CSV (phân tách bằng dấu phẩy)
-    // Format khớp hoàn toàn với sscanf của hàm quản lý doanh thu
     fprintf(fp, "%s,%s,%s,%.0f,%.0f,%.0f,%.0f,%.0f\n",
             bill->billId,
             bill->bookingId,
-            booking->checkOutDate, // Sử dụng ngày check-out của booking
+            booking->checkOutDate,
             bill->roomCost,
             bill->serviceCost,
             bill->serviceCharge,
@@ -32,6 +26,10 @@ void saveBillRecord(Bill *bill, Booking *booking) {
             bill->total);
 
     fclose(fp);
+}
+
+static void printBillAmountLine(FILE *stream, const char *label, float amount) {
+    fprintf(stream, "| %-35.35s %14.0f VND |\n", label, amount);
 }
 
 /* ============================================================
@@ -62,6 +60,7 @@ int createBill(Bill *bill,
 
     generateBillIdFromBooking(bill->billId, booking->bookingId);
     strncpy(bill->bookingId, booking->bookingId, sizeof(bill->bookingId) - 1);
+    bill->bookingId[sizeof(bill->bookingId) - 1] = '\0';
 
     int nights = calcNights(booking->checkInDate, booking->checkOutDate);
     if (nights <= 0) nights = 1;
@@ -110,35 +109,35 @@ void printBill(Bill *bill,
     fprintf(stream, "|           KHACH SAN HOTEL MANAGEMENT SYSTEM            |\n");
     fprintf(stream, "|                  HOA DON THANH TOAN                    |\n");
     fprintf(stream, LINE_E);
-    fprintf(stream, "| Ma hoa don : %-16s  Ngay: %-16s  |\n",
+    fprintf(stream, "| Ma hoa don : %-16.16s  Ngay: %-16.16s  |\n",
             bill->billId, dateStr);
-    fprintf(stream, "| Ma booking : %-40s  |\n", booking->bookingId);
+    fprintf(stream, "| Ma booking : %-40.40s  |\n", booking->bookingId);
 
     /* --- Khach hang --- */
     fprintf(stream, LINE_D);
     fprintf(stream, "| THONG TIN KHACH HANG                                   |\n");
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Ho ten    : %-41s  |\n", customer->name);
+    fprintf(stream, "| Ho ten    : %-41.41s  |\n", customer->name);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Ma KH     : %-41s  |\n", customer->id);
+    fprintf(stream, "| Ma KH     : %-41.41s  |\n", customer->id);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| CCCD      : %-41s  |\n", customer->cccd);
+    fprintf(stream, "| CCCD      : %-41.41s  |\n", customer->cccd);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| SDT       : %-41s  |\n", customer->phone);
+    fprintf(stream, "| SDT       : %-41.41s  |\n", customer->phone);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Hang KH   : %-11s   Giam gia : %3.0f%%              |\n",
+    fprintf(stream, "| Hang KH   : %-11.11s   Giam gia : %3.0f%%              |\n",
             rankStr(customer->rank), discount * 100);
 
     /* --- Phong --- */
     fprintf(stream, LINE_D);
     fprintf(stream, "| THONG TIN PHONG                                        |\n");
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Phong     : %-10s        Loai : %-17s |\n",
+    fprintf(stream, "| Phong     : %-10.10s        Loai : %-17.17s |\n",
             room->id, room->type);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Check-in  : %-41s  |\n", booking->checkInDate);
+    fprintf(stream, "| Check-in  : %-41.41s  |\n", booking->checkInDate);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Check-out : %-41s  |\n", booking->checkOutDate);
+    fprintf(stream, "| Check-out : %-41.41s  |\n", booking->checkOutDate);
     fprintf(stream, LINE_D);
     fprintf(stream, "| So dem    : %-5d        Don gia : %10.0f VND/dem  |\n",
             nights, room->price);
@@ -147,11 +146,11 @@ void printBill(Bill *bill,
     fprintf(stream, LINE_D);
     fprintf(stream, "| CHI TIET TIEN PHONG                                    |\n");
     fprintf(stream, LINE_D);
-    fprintf(stream, "| %-15s  %10.0f x %2d dem =   %9.0f VND |\n",
+    fprintf(stream, "| %-15.15s  %10.0f x %2d dem =   %9.0f VND |\n",
             room->type, room->price, nights, room->price * nights);
     if (discount > 0) {
         fprintf(stream, LINE_D);
-        fprintf(stream, "| Giam gia %-8s (%3.0f%%)             -  %9.0f VND  |\n",
+        fprintf(stream, "| Giam gia %-8.8s (%3.0f%%)             -  %9.0f VND  |\n",
                 rankStr(customer->rank),
                 discount * 100,
                 room->price * nights * discount);
@@ -175,7 +174,7 @@ void printBill(Bill *bill,
         if (svcIdx < 0) continue;
 
         float sub = services[svcIdx].price * usedServices[i].quantity;
-        fprintf(stream, "| %-17s  %9.0f x %2d %-4s  = %7.0f VND  |\n",
+        fprintf(stream, "| %-17.17s  %9.0f x %2d %-4.4s  = %7.0f VND  |\n",
                 services[svcIdx].serviceName,
                 services[svcIdx].price,
                 usedServices[i].quantity,
@@ -197,20 +196,15 @@ void printBill(Bill *bill,
     fprintf(stream, LINE_D);
     fprintf(stream, "| TONG HOP THANH TOAN                                    |\n");
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Tien phong                           %10.0f VND    |\n",
-            bill->roomCost);
+    printBillAmountLine(stream, "Tien phong", bill->roomCost);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Tien dich vu                        %11.0f VND    |\n",
-            bill->serviceCost);
+    printBillAmountLine(stream, "Tien dich vu", bill->serviceCost);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Phi dich vu (5%%)                    %11.0f VND    |\n",
-            bill->serviceCharge);
+    printBillAmountLine(stream, "Phi dich vu (5%)", bill->serviceCharge);
     fprintf(stream, LINE_D);
-    fprintf(stream, "| Thue VAT (10%%)                      %11.0f VND    |\n",
-            bill->vat);
+    printBillAmountLine(stream, "Thue VAT (10%)", bill->vat);
     fprintf(stream, LINE_E);
-    fprintf(stream, "| TONG THANH TOAN                     %11.0f VND    |\n",
-            bill->total);
+    printBillAmountLine(stream, "TONG THANH TOAN", bill->total);
     fprintf(stream, LINE_E);
     fprintf(stream, "|            Cam on quy khach! Hen gap lai.              |\n");
     fprintf(stream, LINE_E);
@@ -265,8 +259,7 @@ int exportBillToFile(Bill *bill,
 }
 
 /* ============================================================
-   XEM LAI HOA DON THEO MA BOOKING VÀ TỰ ĐỘNG ĐỒNG BỘ DOANH THU
-   ============================================================ */
+   XEM LAI HOA DON THEO MA BOOKING VA DONG BO DOANH THU`r`n   ============================================================ */
 void viewBillByBooking(Booking bookings[], int bookingCount,
                        Room rooms[], int roomCount,
                        Customer customers[], int customerCount,
@@ -327,7 +320,7 @@ void viewBillByBooking(Booking bookings[], int bookingCount,
                 services, serviceCount);
 
     /* ========================================================
-       SỬA TẠI ĐÂY: KHI XUẤT FILE SẼ ĐỒNG THỜI GHI VÀO bills.txt
+       KHI XUAT FILE SE DONG THOI GHI VAO data/bills.txt
        ======================================================== */
     if (bookings[bkIdx].status == 1) { 
         printf("\n  [Luu y] Phong nay chua lam thu tuc Check-out.\n");
@@ -339,17 +332,14 @@ void viewBillByBooking(Booking bookings[], int bookingCount,
         safeInput(confirm, sizeof(confirm));
 
         if (confirm[0] == 'Y' || confirm[0] == 'y') {
-            // 1. Xuất hóa đơn giao diện khung bảng vào thư mục output/HDxxx.txt cho khách
             exportBillToFile(&bill,
                              &bookings[bkIdx],
                              &rooms[rmIdx],
                              &customers[cuIdx],
                              usedServices, usedCount,
                              services, serviceCount);
-                             
-            // 2. TỰ ĐỘNG GHI 1 DÒNG DỮ LIỆU THUẦN VÀO bills.txt PHỤC VỤ ADMIN
             saveBillRecord(&bill, &bookings[bkIdx]);
-            printf("  [OK] Da ghi nhan doanh thu vao file he thong (bills.txt).\n");
+            printf("  [OK] Da ghi nhan doanh thu vao data/bills.txt.\n");
         }
     }
 
