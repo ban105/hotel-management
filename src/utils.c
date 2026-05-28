@@ -117,11 +117,18 @@ void trimStr(char *str) {
 }
 
 int safeInput(char *buffer, int size) {
+    if (buffer == NULL || size <= 0) return 0;
+
     if (fgets(buffer, size, stdin) != NULL) {
-        buffer[strcspn(buffer, "\n")] = '\0';
+        size_t len = strcspn(buffer, "\n");
+        if (buffer[len] == '\n') {
+            buffer[len] = '\0';
+        } else {
+            clearInputBuffer();
+        }
         return 1;
     }
-    if (size > 0) buffer[0] = '\0';
+    buffer[0] = '\0';
     return 0;
 }
 

@@ -12,12 +12,12 @@
    STRUCT NHAN VIEN
    ============================================================ */
 typedef struct {
-    char  empId[10];      /* Ma nhan vien: NV001...     */
-    char  name[50];       /* Ho ten                     */
-    char  position[30];   /* Chuc vu: Le tan, Buong phong... */
-    char  phone[15];      /* So dien thoai              */
-    float salary;         /* Luong co ban               */
-    int   status;         /* 1=Active, 0=Inactive       */
+    char  empId[10];      
+    char  name[50];       
+    char  position[30];   
+    char  phone[15];      
+    float salary;         
+    int   status;         
 } Employee;
 
 /* ============================================================

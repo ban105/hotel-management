@@ -105,7 +105,7 @@ void printCustomer(Customer *c) {
 }
 
 /* ============================
-   TÌM KHÁCH HÀNG
+   TIM KHACH HANG
    ============================ */
 int findCustomerById(Customer customers[], int count, const char *id) {
     for (int i = 0; i < count; i++)
@@ -131,7 +131,7 @@ static void generateCustomerId(Customer customers[], int count, char *id) {
 }
 
 /* ============================
-   THÊM KHÁCH HÀNG
+   THEM KHACH HANG
    ============================ */
 void addCustomer(Customer customers[], int *count) {
     if (*count >= MAX_CUSTOMERS) {
@@ -198,7 +198,7 @@ void addCustomer(Customer customers[], int *count) {
 }
 
 /* ============================
-   SỬA KHÁCH HÀNG
+   SUA KHACH HANG
    ============================ */
 void editCustomer(Customer customers[], int count) {
     if (count == 0) {
@@ -261,7 +261,7 @@ void editCustomer(Customer customers[], int count) {
 }
 
 /* ============================
-   XÓA KHÁCH HÀNG
+   XOA KHACH HANG
    ============================ */
 void deleteCustomer(Customer customers[], int *count,
                     Booking bookings[], int bookingCount) {
@@ -284,9 +284,12 @@ void deleteCustomer(Customer customers[], int *count,
     printCustomer(&customers[idx]);
 
     for (int i = 0; i < bookingCount; i++) {
-        if (strcmp(bookings[i].customerId, id) == 0 &&
-            bookings[i].status == BOOKING_CHECKIN) {
-            printf("  [!] Khach hang dang check-in, khong the xoa.\n");
+        if (strcmp(bookings[i].customerId, id) == 0) {
+            if (bookings[i].status == BOOKING_CHECKIN) {
+                printf("  [!] Khach hang dang check-in, khong the xoa.\n");
+            } else {
+                printf("  [!] Khach hang da co booking lich su, khong the xoa vi se mat lien ket hoa don.\n");
+            }
             pauseScreen();
             return;
         }
@@ -307,26 +310,12 @@ void deleteCustomer(Customer customers[], int *count,
     (*count)--;
     saveCustomers(customers, *count);
 
-    int canceled = 0;
-    for (int i = 0; i < bookingCount; i++) {
-        if (strcmp(bookings[i].customerId, id) == 0 &&
-            bookings[i].status == BOOKING_PENDING) {
-            bookings[i].status = BOOKING_CANCEL;
-            canceled++;
-        }
-    }
-
-    if (canceled > 0) {
-        saveBookings(bookings, bookingCount);
-        printf("  [-] Da tu dong huy %d booking active cua khach hang nay.\n", canceled);
-    }
-
     printf("  [OK] Da xoa khach hang %s khoi he thong!\n", id);
     pauseScreen();
 }
 
 /* ============================
-   XEM DANH SÁCH KHÁCH HÀNG
+   XEM DANH SACH KHACH HANG
    ============================ */
 void listCustomers(Customer customers[], int count) {
     clearScreen();
@@ -356,7 +345,7 @@ void listCustomers(Customer customers[], int count) {
 }
 
 /* ============================
-   TÌM KIẾM KHÁCH HÀNG
+   TIM KIEM KHACH HANG
    ============================ */
 void searchCustomer(Customer customers[], int count) {
     clearScreen();
@@ -421,7 +410,7 @@ void searchCustomer(Customer customers[], int count) {
 }
 
 /* ============================
-   NÂNG/HẠ HẠNG THÀNH VIÊN
+   NANG/HA HANG THANH VIEN
    ============================ */
 void updateCustomerRank(Customer customers[], int count) {
     clearScreen();
@@ -461,7 +450,7 @@ void updateCustomerRank(Customer customers[], int count) {
 }
 
 /* ============================
-   LƯU VÀO FILE
+   LUU VAO FILE
    ============================ */
 void saveCustomers(Customer customers[], int count) {
     FILE *fp = fopen(CUSTOMER_FILE, "w");
@@ -506,7 +495,7 @@ int loadCustomers(Customer customers[]) {
 }
 
 /* ============================
-   MENU QUẢN LÝ KHÁCH HÀNG
+   MENU QUAN LY KHACH HANG
    ============================ */
 void menuCustomer(Customer customers[], int *count,
                   Booking bookings[], int bookingCount) {

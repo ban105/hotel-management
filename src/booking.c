@@ -9,10 +9,10 @@
 #define BOOKING_FILE "data/bookings.txt"
 
 /* ============================
-   TIỆN ÍCH
+   TIEN ICH
    ============================ */
 
-/* Lấy ngày giờ hiện tại */
+/* Lay ngay gio hien tai */
 void getCurrentDateTime(char *dateStr, char *timeStr) {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
@@ -22,7 +22,7 @@ void getCurrentDateTime(char *dateStr, char *timeStr) {
                          tm->tm_hour, tm->tm_min);
 }
 
-/* Chuyển ngày DD/MM/YYYY sang số ngày đại diện dựa trên epoch time (chuẩn xác 100%) */
+/* Chuyen ngay DD/MM/YYYY sang so ngay dai dien dua tren epoch time */
 static int dateToInt(const char *date) {
     int d, m, y;
     if (sscanf(date, "%d/%d/%d", &d, &m, &y) != 3) {
@@ -31,8 +31,8 @@ static int dateToInt(const char *date) {
     
     struct tm t = {0};
     t.tm_mday = d;
-    t.tm_mon = m - 1;       // Trong C, tháng chạy từ 0 đến 11
-    t.tm_year = y - 1900;   // Năm tính từ mốc 1900
+    t.tm_mon = m - 1;       // Trong C, thang chay tu 0 den 11
+    t.tm_year = y - 1900;   // Nam tinh tu moc 1900
     t.tm_isdst = -1;
 
     time_t seconds = mktime(&t);
@@ -42,7 +42,7 @@ static int dateToInt(const char *date) {
     return (int)(seconds / 86400);
 }
 
-/* KIỂM TRA NGÀY NHẬP VÀO CÓ PHẢI LÀ QUÁ KHỨ KHÔNG */
+/* KIEM TRA NGAY NHAP VAO CO PHAI LA QUA KHU KHONG */
 static int isPastDate(const char *dateStr) {
     int inputD, inputM, inputY;
     if (sscanf(dateStr, "%d/%d/%d", &inputD, &inputM, &inputY) != 3) {
@@ -72,13 +72,13 @@ static int isPastDate(const char *dateStr) {
     return 0; 
 }
 
-/* Tính số đêm giữa 2 ngày */
+/* Tinh so dem giua 2 ngay */
 int calcNights(const char *checkIn, const char *checkOut) {
     int diff = dateToInt(checkOut) - dateToInt(checkIn);
     return diff > 0 ? diff : 1;
 }
 
-/* Tạo mã booking tự động BK001... */
+/* Tao ma booking tu dong BK001... */
 void generateBookingId(Booking bookings[], int count, char *id) {
     int maxNum = 0;
     for (int i = 0; i < count; i++) {
@@ -89,14 +89,14 @@ void generateBookingId(Booking bookings[], int count, char *id) {
     sprintf(id, "BK%03d", maxNum + 1);
 }
 
-/* Tạo mã hóa đơn từ mã booking */
+/* Tao ma hoa don tu ma booking */
 void generateBillId(char *billId, const char *bookingId) {
     int num = 0;
     sscanf(bookingId, "BK%d", &num);
     sprintf(billId, "HD%03d", num);
 }
 
-/* Chuỗi trạng thái booking */
+/* Chuoi trang thai booking */
 static const char* bookingStatusStr(int status) {
     switch (status) {
         case 0: return "Da dat";  
@@ -108,7 +108,7 @@ static const char* bookingStatusStr(int status) {
 }
 
 /* =========================================================================
-   HỆ THỐNG IN BẢNG VÀ BANNER
+   HE THONG IN BANG VA BANNER
    ========================================================================= */
 static void printBookingBorder() {
     printf("  +-------+-------+-------+------------+------------+----------+\n");
@@ -147,7 +147,7 @@ static void printBookingRow(Booking *b) {
 }
 
 /* ============================
-   IN PHIẾU CHECK-IN
+   IN PHIEU CHECK-IN
    ============================ */
 void printCheckInReceipt(Booking *b, Room *r, Customer *c) {
     int nights    = calcNights(b->checkInDate, b->checkOutDate);
@@ -211,7 +211,7 @@ void printCheckInReceipt(Booking *b, Room *r, Customer *c) {
 }
 
 /* ============================
-   TÌM BOOKING
+   TIM BOOKING
    ============================ */
 int findBookingById(Booking bookings[], int count, const char *id) {
     for (int i = 0; i < count; i++)
@@ -244,7 +244,7 @@ static int isRoomFreeInDateRange(Booking bookings[], int bookingCount,
 }
 
 /* ============================
-   ĐẶT PHÒNG MỚI
+   DAT PHONG MOI
    ============================ */
 void addBooking(Booking bookings[], int *bookingCount,
                 Room rooms[], int roomCount,
@@ -276,7 +276,7 @@ void addBooking(Booking bookings[], int *bookingCount,
            customers[cIdx].name, rankStr(customers[cIdx].rank));
 
     do {
-        printf("  Ngay check-in (DD/MM/YYYY): ");
+        printf("  Ngay check-in (DD/MM/YYYY) : ");
         safeInput(b.checkInDate, sizeof(b.checkInDate));
         trimStr(b.checkInDate);
 
@@ -380,7 +380,7 @@ void addBooking(Booking bookings[], int *bookingCount,
 }
 
 /* ============================
-   HỦY ĐẶT PHÒNG
+   HUY DAT PHONG
    ============================ */
 void cancelBooking(Booking bookings[], int bookingCount,
                    Room rooms[], int roomCount) {
@@ -576,7 +576,7 @@ void checkOut(Booking bookings[], int bookingCount,
     printf("  | %-14s: %-26.0f dong |\n", "Tong thanh toan", total);
     
     printf("  ");printLine(52);
-    // Đã sửa lại dòng chữ theo đúng yêu cầu của bạn ở đây
+    // Dong ghi chu ve hoa don tam thoi.
     printf("  | Luu y: Hoa don chua bao gom phi dich vu va thue  |\n");
     printf("  ");printLine(52);
 
@@ -598,7 +598,7 @@ void checkOut(Booking bookings[], int bookingCount,
 }
 
 /* ============================
-   XEM DANH SÁCH BOOKING
+   XEM DANH SACH BOOKING
    ============================ */
 void listBookings(Booking bookings[], int count,
                   Customer customers[], int customerCount,
@@ -637,7 +637,7 @@ void listBookings(Booking bookings[], int count,
 }
 
 /* ============================
-   LƯU FILE
+   LUU FILE
    ============================ */
 void saveBookings(Booking bookings[], int count) {
     FILE *fp = fopen(BOOKING_FILE, "w");
@@ -651,7 +651,7 @@ void saveBookings(Booking bookings[], int count) {
 }
 
 /* ============================
-   ĐỌC FILE
+   DOC FILE
    ============================ */
 int loadBookings(Booking bookings[]) {
     FILE *fp = fopen(BOOKING_FILE, "r");
@@ -661,7 +661,7 @@ int loadBookings(Booking bookings[]) {
     char line[256];
     
     while (count < MAX_BOOKINGS && fgets(line, sizeof(line), fp)) {
-        if (sscanf(line, "%[^,],%[^,],%[^,],%[^,],%[^,],%d",
+        if (sscanf(line, "%9[^,],%9[^,],%9[^,],%19[^,],%19[^,],%d",
                   bookings[count].bookingId, bookings[count].customerId,
                   bookings[count].roomId, bookings[count].checkInDate,
                   bookings[count].checkOutDate, &bookings[count].status) == 6) {

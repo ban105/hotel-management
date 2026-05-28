@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "employee.h"
 #include "utils.h"
 
 #define EMPLOYEE_FILE "data/employees.txt"
-#define EMP_DIV   "  +-----------------------------------------------------------------+\n"
+#define EMP_DIV   "  +-----------------------------------------------------------------------------+\n"
+#define EMP_MENU_DIV "  +----------------------------------------------------------+\n"
+#define EMP_TABLE_DIV "  +--------+--------------------+--------------+------------+----------+--------+\n"
 
 /* ============================================================
    TIEN ICH IN KHUNG
@@ -13,7 +16,7 @@
 static void empHeader(const char *title) {
     printf(EMP_DIV);
     int len   = strlen(title);
-    int total = 65;
+    int total = 77;
     int pad   = (total - len) / 2;
     printf("  |");
     for (int i = 0; i < pad; i++) printf(" ");
@@ -21,6 +24,19 @@ static void empHeader(const char *title) {
     for (int i = 0; i < total - pad - len; i++) printf(" ");
     printf("|\n");
     printf(EMP_DIV);
+}
+
+static void empMenuHeader(const char *title) {
+    printf(EMP_MENU_DIV);
+    int len = strlen(title);
+    int total = 58;
+    int pad = (total - len) / 2;
+    printf("  |");
+    for (int i = 0; i < pad; i++) printf(" ");
+    printf("%s", title);
+    for (int i = 0; i < total - pad - len; i++) printf(" ");
+    printf("|\n");
+    printf(EMP_MENU_DIV);
 }
 
 /* ============================================================
@@ -43,6 +59,21 @@ int findEmployeeById(Employee employees[], int count, const char *id) {
     for (int i = 0; i < count; i++)
         if (strcmp(employees[i].empId, id) == 0) return i;
     return -1;
+}
+
+static int parseNonNegativeFloat(const char *text, float *value) {
+    char *end;
+    float parsed = strtof(text, &end);
+
+    if (end == text) return 0;
+    while (*end != '\0') {
+        if (!isspace((unsigned char)*end)) return 0;
+        end++;
+    }
+    if (parsed < 0) return 0;
+
+    *value = parsed;
+    return 1;
 }
 
 /* ============================================================
@@ -103,23 +134,23 @@ void listEmployees(Employee employees[], int count) {
     empHeader("DANH SACH NHAN VIEN");
 
     if (count == 0) {
-        printf("  | %-63s|\n", "  (Chua co nhan vien nao)");
+        printf("  | %-75s |\n", "  (Chua co nhan vien nao)");
         printf(EMP_DIV);
         pauseScreen();
         return;
     }
 
-    printf(EMP_DIV);
-    printf("  | %-6s %-17s %-12s %-10s %8s %-6s|\n",
+    printf(EMP_TABLE_DIV);
+    printf("  | %-6s | %-18s | %-12s | %-10s | %8s | %-6s |\n",
            "Ma NV", "Ho ten", "Chuc vu", "SDT", "Luong", "T.Thai");
-    printf(EMP_DIV);
+    printf(EMP_TABLE_DIV);
 
     int active = 0, inactive = 0;
 
     for (int i = 0; i < count; i++) {
         const char *statusStr = (employees[i].status == EMPLOYEE_ACTIVE)
                                 ? "On " : "Off";
-        printf("  | %-6.6s %-17.17s %-12.12s %-10.10s %8.0f   %-4.6s|\n",
+        printf("  | %-6.6s | %-18.18s | %-12.12s | %-10.10s | %8.0f | %-6.6s |\n",
                employees[i].empId,
                employees[i].name,
                employees[i].position,
@@ -131,7 +162,7 @@ void listEmployees(Employee employees[], int count) {
         else inactive++;
     }
 
-    printf(EMP_DIV);
+    printf(EMP_TABLE_DIV);
     printf("  Tong: %d  |  Dang lam: %d  |  Da nghi: %d\n",
            count, active, inactive);
 
@@ -181,6 +212,10 @@ void addEmployee(Employee employees[], int *count) {
     safeInput(e.phone, sizeof(e.phone));
     if (!isNotEmpty(e.phone)) {
         printf("  [!] SDT khong duoc de trong.\n");
+        pauseScreen(); return;
+    }
+    if (!isNumeric(e.phone)) {
+        printf("  [!] SDT chi duoc chua chu so.\n");
         pauseScreen(); return;
     }
 
@@ -236,6 +271,11 @@ void editEmployee(Employee employees[], int count) {
         pauseScreen(); return;
     }
 
+    if (employees[idx].status == EMPLOYEE_INACTIVE) {
+        printf("  [!] Nhan vien %s da nghi viec, khong the sua thong tin.\n", empId);
+        pauseScreen(); return;
+    }
+
     printf("\n  Thong tin hien tai:\n");
     printf(EMP_DIV);
     printf("  Ten   : %s\n", employees[idx].name);
@@ -257,17 +297,22 @@ void editEmployee(Employee employees[], int count) {
     /* Sua so dien thoai */
     printf("  SDT moi [%s]: ", employees[idx].phone);
     safeInput(tmp, sizeof(tmp));
-    if (isNotEmpty(tmp))
-        strncpy(employees[idx].phone, tmp,
-                sizeof(employees[idx].phone) - 1);
+    if (isNotEmpty(tmp)) {
+        if (!isNumeric(tmp)) {
+            printf("  [!] SDT khong hop le, giu nguyen.\n");
+        } else {
+            strncpy(employees[idx].phone, tmp,
+                    sizeof(employees[idx].phone) - 1);
+        }
+    }
     employees[idx].phone[sizeof(employees[idx].phone) - 1] = '\0';
 
     /* Sua luong */
     printf("  Luong moi [%.0f]: ", employees[idx].salary);
     safeInput(tmp, sizeof(tmp));
     if (isNotEmpty(tmp)) {
-        float newSalary = atof(tmp);
-        if (newSalary >= 0)
+        float newSalary;
+        if (parseNonNegativeFloat(tmp, &newSalary))
             employees[idx].salary = newSalary;
         else
             printf("  [!] Luong khong hop le, giu nguyen.\n");
@@ -334,17 +379,13 @@ void menuEmployee(Employee employees[], int *count) {
     int choice;
     do {
         clearScreen();
-        empHeader("QUAN LY NHAN VIEN");
-        printf("  | %-64s|\n", "1. Xem danh sach nhan vien");
-        printf(EMP_DIV);
-        printf("  | %-64s|\n", "2. Them nhan vien moi");
-        printf(EMP_DIV);
-        printf("  | %-64s|\n", "3. Cap nhat thong tin (Chuc vu / Luong)");
-        printf(EMP_DIV);
-        printf("  | %-64s|\n", "4. Thay doi trang thai lam viec");
-        printf(EMP_DIV);
-        printf("  | %-64s|\n", "0. Quay lai menu Admin");
-        printf(EMP_DIV);
+        empMenuHeader("QUAN LY NHAN VIEN");
+        printf("  | %-57s|\n", "1. Xem danh sach nhan vien");
+        printf("  | %-57s|\n", "2. Them nhan vien moi");
+        printf("  | %-57s|\n", "3. Cap nhat thong tin (Chuc vu / Luong)");
+        printf("  | %-57s|\n", "4. Thay doi trang thai lam viec");
+        printf("  | %-57s|\n", "0. Quay lai menu Admin");
+        printf(EMP_MENU_DIV);
 
         choice = inputInt("  Chon: ", 0, 4);
 
@@ -366,3 +407,4 @@ void menuEmployee(Employee employees[], int *count) {
         }
     } while (choice != 0);
 }
+

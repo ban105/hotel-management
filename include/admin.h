@@ -41,7 +41,7 @@ void adminEditService(Service services[], int *count);
 void adminDeleteService(Service services[], int *count);
 void adminSaveServices(Service services[], int count);
 
-void saveBillRecord(Bill *bill, Booking *booking);
+int  saveBillRecord(Bill *bill, Booking *booking);
 int  loadBillRecords(BillRecord records[]);
 
 void reportRevenueSummary();

@@ -21,20 +21,20 @@
    STRUCT DANH MUC DICH VU (doc tu file tinh)
    ============================================================ */
 typedef struct {
-    char  serviceId[10];   /* Ma dich vu: DV001... */
-    char  serviceName[30]; /* Ten dich vu           */
-    float price;           /* Don gia               */
-    char  unit[10];        /* Don vi: cai, lan, kg  */
+    char  serviceId[10];   
+    char  serviceName[30]; 
+    float price;           
+    char  unit[10];        
 } Service;
 
 /* ============================================================
    STRUCT DICH VU KHACH DA GOI (luu vao file dong)
    ============================================================ */
 typedef struct {
-    char bookingId[10]; /* Gan voi booking nao  */
-    char serviceId[10]; /* Ma dich vu           */
-    int  quantity;      /* So luong             */
-    int  status;        /* 1=Active, 0=Canceled */
+    char bookingId[10]; 
+    char serviceId[10]; 
+    int  quantity;      
+    int  status;        
 } UsedService;
 
 /* ============================================================
@@ -75,4 +75,4 @@ void  menuService(UsedService usedServices[], int *usedCount,
                   Customer customers[], int customerCount,
                   Service services[], int serviceCount);
 
-#endif /* SERVICE_H */
+#endif 

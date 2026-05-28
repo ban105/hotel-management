@@ -11,20 +11,20 @@
 /* ============================================================
    HANG SO THUE VA PHI
    ============================================================ */
-#define SERVICE_CHARGE_RATE 0.05f  /* Phi dich vu 5%  */
-#define VAT_RATE            0.10f  /* Thue VAT 10%    */
+#define SERVICE_CHARGE_RATE 0.05f  
+#define VAT_RATE            0.10f  
 
 /* ============================================================
    STRUCT HOA DON
    ============================================================ */
 typedef struct {
-    char  billId[10];     /* Ma hoa don: HD001...       */
-    char  bookingId[10];  /* Ma dat phong lien ket      */
-    float roomCost;       /* Tien phong sau giam gia    */
-    float serviceCost;    /* Tong tien dich vu (active) */
-    float serviceCharge;  /* Phi dich vu 5%             */
-    float vat;            /* Thue VAT 10%               */
-    float total;          /* Tong thanh toan cuoi       */
+    char  billId[10];     
+    char  bookingId[10];  
+    float roomCost;       
+    float serviceCost;    
+    float serviceCharge;  
+    float vat;            
+    float total;          
 } Bill;
 
 /* ============================================================

@@ -11,6 +11,44 @@ void adminPrintLine() {
     printf("  +----------------------------------------------------------+\n");
 }
 
+#define ADMIN_FULL_DIV "  +----------------------------------------------------------+\n"
+#define ADMIN_SERVICE_TABLE_DIV "  +----------+------------------------+------------+---------+\n"
+#define ADMIN_SUMMARY_TABLE_DIV "  +-----------------------------------+----------------------+\n"
+#define ADMIN_PERFORMANCE_TABLE_DIV "  +-----+----------+--------------------+----------+----------------+\n"
+#define ADMIN_PERFORMANCE_FULL_DIV "  +-----------------------------------------------------------------+\n"
+#define ADMIN_REVENUE_TABLE_DIV "  +------------+------------+------------+------------+--------------+\n"
+#define ADMIN_REVENUE_FULL_DIV "  +------------------------------------------------------------------+\n"
+
+static void adminPrintBoxHeader(const char *border, int innerWidth, const char *title) {
+    int titleLen = strlen(title);
+    if (titleLen > innerWidth) titleLen = innerWidth;
+    int left = (innerWidth - titleLen) / 2;
+    int right = innerWidth - titleLen - left;
+
+    printf(border);
+    printf("  | ");
+    for (int i = 0; i < left; i++) printf(" ");
+    printf("%.*s", innerWidth, title);
+    for (int i = 0; i < right; i++) printf(" ");
+    printf(" |\n");
+    printf(border);
+}
+
+static int parseMinFloat(const char *text, float min, float *value) {
+    char *end;
+    float parsed = strtof(text, &end);
+
+    if (end == text) return 0;
+    while (*end != '\0') {
+        if (*end != ' ' && *end != '\t') return 0;
+        end++;
+    }
+    if (parsed < min) return 0;
+
+    *value = parsed;
+    return 1;
+}
+
 
 
 /* ============================================================
@@ -94,29 +132,28 @@ int systemLogin(User *user) {
    ============================================================ */
 void adminViewServices(Service services[], int count) {
     clearScreen();
-    adminPrintLine();
-    printf("  |                DANH MUC DICH VU HIEN TAI                 |\n");
-    adminPrintLine();
+    adminPrintBoxHeader(ADMIN_FULL_DIV, 56, "DANH MUC DICH VU HIEN TAI");
 
     if (count == 0) {
-        printf("  | %-58s|\n", "  (Chua co dich vu nao)");
+        printf("  | %-56s |\n", "(Chua co dich vu nao)");
         adminPrintLine();
         pauseScreen();
         return;
     }
 
-    printf("  | %-8s %-22s %10s  %-12s |\n",
+    printf(ADMIN_SERVICE_TABLE_DIV);
+    printf("  | %-8s | %-22s | %10s | %-7s |\n",
            "Ma DV", "Ten dich vu", "Don gia", "Don vi");
-    adminPrintLine();
+    printf(ADMIN_SERVICE_TABLE_DIV);
 
     for (int i = 0; i < count; i++) {
-        printf("  | %-8.8s %-22.22s %10.0f  %-12.12s |\n",
+        printf("  | %-8.8s | %-22.22s | %10.0f | %-7.7s |\n",
                services[i].serviceId,
                services[i].serviceName,
                services[i].price,
                services[i].unit);
     }
-    adminPrintLine();
+    printf(ADMIN_SERVICE_TABLE_DIV);
     printf("  Tong cong: %d dich vu.\n", count);
     pauseScreen();
 }
@@ -271,8 +308,8 @@ void adminEditService(Service services[], int *count) {
     printf("  Don gia moi [%.0f]: ", services[idx].price);
     safeInput(tmp, sizeof(tmp));
     if (isNotEmpty(tmp)) {
-        float newPrice = atof(tmp);
-        if (newPrice >= 1000) services[idx].price = newPrice;
+        float newPrice;
+        if (parseMinFloat(tmp, 1000, &newPrice)) services[idx].price = newPrice;
         else printf("  [!] Gia khong hop le, giu nguyen.\n");
     }
 
@@ -316,6 +353,25 @@ void adminDeleteService(Service services[], int *count) {
         printf("  [!] Khong tim thay dich vu %s.\n", svcId);
         pauseScreen();
         return;
+    }
+
+    FILE *usedFp = fopen("data/used_services.txt", "r");
+    if (usedFp) {
+        char line[256];
+        while (fgets(line, sizeof(line), usedFp)) {
+            char bkId[10], usedSvcId[10];
+            int qty, status;
+            if (sscanf(line, "%9[^,],%9[^,],%d,%d",
+                       bkId, usedSvcId, &qty, &status) == 4 &&
+                strcmp(usedSvcId, svcId) == 0) {
+                fclose(usedFp);
+                printf("  [!] Dich vu %s da tung duoc su dung, khong the xoa vi se anh huong hoa don.\n", svcId);
+                printf("      Hay sua ten/gia neu can cap nhat danh muc.\n");
+                pauseScreen();
+                return;
+            }
+        }
+        fclose(usedFp);
     }
 
     printf("\n  Xoa dich vu: [%s] %s - %.0f VND/%s\n",
@@ -375,7 +431,17 @@ int loadBillRecords(BillRecord records[]) {
                             &r->serviceCharge,
                             &r->vat,
                             &r->total);
-        if (parsed == 8) count++;
+        if (parsed == 8) {
+            int duplicate = 0;
+            for (int i = 0; i < count; i++) {
+                if (strcmp(records[i].billId, r->billId) == 0 ||
+                    strcmp(records[i].bookingId, r->bookingId) == 0) {
+                    duplicate = 1;
+                    break;
+                }
+            }
+            if (!duplicate) count++;
+        }
     }
 
     fclose(fp);
@@ -425,9 +491,9 @@ void reportRevenueSummary() {
     adminPrintLine();
     printf("  | %-31.31s     %20.0f |\n", "Tong doanh thu tien dich vu:", totalSvc);
     adminPrintLine();
-    printf("  | %-31.31s     %20.0f |\n", "Tong phi dich vu (5%%):", totalCharge);
+    printf("  | %-31.31s     %20.0f |\n", "Tong phi dich vu (5%):", totalCharge);
     adminPrintLine();
-    printf("  | %-31.31s     %20.0f |\n", "Tong thue VAT (10%%):", totalVat);
+    printf("  | %-31.31s     %20.0f |\n", "Tong thue VAT (10%):", totalVat);
     adminPrintLine();
     printf("  | %-31.31s     %20.0f |\n", "TONG DOANH THU THUC NHAN:", grandTotal);
     adminPrintLine();
@@ -441,15 +507,13 @@ void reportRevenueSummary() {
 void reportServicePerformance(Service services[], int serviceCount) {
     clearScreen();
 
-    adminPrintLine();
-    printf("  |              THONG KE HIEU SUAT DICH VU                  |\n");
-    adminPrintLine();
+    adminPrintBoxHeader(ADMIN_PERFORMANCE_FULL_DIV, 63, "THONG KE HIEU SUAT DICH VU");
 
     /* Doc du lieu used_services */
     FILE *fp = fopen("data/used_services.txt", "r");
     if (!fp) {
-        printf("  | %-58s|\n", "  Chua co du lieu dich vu da su dung.");
-        adminPrintLine();
+        printf("  | %-63s |\n", "Chua co du lieu dich vu da su dung.");
+        printf(ADMIN_PERFORMANCE_FULL_DIV);
         pauseScreen();
         return;
     }
@@ -514,9 +578,10 @@ void reportServicePerformance(Service services[], int serviceCount) {
     }
 
     /* In bang xep hang */
-    printf("  | %3s  %-8s %-18s %8s %14s |\n",
+    printf(ADMIN_PERFORMANCE_TABLE_DIV);
+    printf("  | %3s | %-8s | %-18s | %8s | %14s |\n",
            "STT", "Ma DV", "Ten dich vu", "Tong SL", "Doanh thu");
-    adminPrintLine();
+    printf(ADMIN_PERFORMANCE_TABLE_DIV);
 
     int bestIdx = -1;
     int bestQty = 0;
@@ -524,7 +589,7 @@ void reportServicePerformance(Service services[], int serviceCount) {
     for (int i = 0; i < statCount; i++) {
         if (stats[i].totalQty == 0) continue; /* Bo qua dich vu chua ban */
 
-        printf("  | %3d  %-8.8s %-18.18s %8d %14.0f |\n",
+        printf("  | %3d | %-8.8s | %-18.18s | %8d | %14.0f |\n",
                i + 1,
                stats[i].serviceId,
                stats[i].serviceName,
@@ -537,20 +602,22 @@ void reportServicePerformance(Service services[], int serviceCount) {
         }
     }
 
-    adminPrintLine();
+    printf(ADMIN_PERFORMANCE_TABLE_DIV);
 
     /* In Best Seller */
     if (bestIdx >= 0) {
-        printf("  | BEST SELLER: %-44s|\n", "");
-        printf("  | >> [%-5.5s] %-18.18s - %3d luot - %9.0f VND |\n",
+        printf(ADMIN_PERFORMANCE_FULL_DIV);
+        printf("  | %-63s |\n", "BEST SELLER");
+        printf("  | >> [%-5.5s] %-18.18s - %3d luot - %9.0f VND %-6s |\n",
                stats[bestIdx].serviceId,
                stats[bestIdx].serviceName,
                stats[bestIdx].totalQty,
-               stats[bestIdx].totalRevenue);
-        adminPrintLine();
+               stats[bestIdx].totalRevenue,
+               "");
+        printf(ADMIN_PERFORMANCE_FULL_DIV);
     } else {
-        printf("  | %-58s|\n", "  Chua co dich vu nao duoc su dung.");
-        adminPrintLine();
+        printf("  | %-63s |\n", "Chua co dich vu nao duoc su dung.");
+        printf(ADMIN_PERFORMANCE_FULL_DIV);
     }
 
     pauseScreen();
@@ -562,9 +629,7 @@ void reportServicePerformance(Service services[], int serviceCount) {
 void reportRevenueByDateRange() {
     clearScreen();
 
-    adminPrintLine();
-    printf("  |            DOANH THU THEO KHOANG THOI GIAN               |\n");
-    adminPrintLine();
+    adminPrintBoxHeader(ADMIN_REVENUE_FULL_DIV, 64, "DOANH THU THEO KHOANG THOI GIAN");
 
     /* Nhap khoang thoi gian */
     char fromDate[20], toDate[20];
@@ -602,15 +667,15 @@ void reportRevenueByDateRange() {
     float sumTotal   = 0;
     int   matched    = 0;
 
-    adminPrintLine();
-    printf("  | %-10s %-10s %10s %10s %12s |\n",
+    printf(ADMIN_REVENUE_TABLE_DIV);
+    printf("  | %-10s | %-10s | %10s | %10s | %12s |\n",
            "Ma HD", "Ma BK", "Tien phong", "Dich vu", "Tong");
-    adminPrintLine();
+    printf(ADMIN_REVENUE_TABLE_DIV);
 
     for (int i = 0; i < total; i++) {
         if (!dateInRange(records[i].checkOutDate, fromDate, toDate)) continue;
 
-        printf("  | %-10.10s %-10.10s %10.0f %10.0f %12.0f |\n",
+        printf("  | %-10.10s | %-10.10s | %10.0f | %10.0f | %12.0f |\n",
                records[i].billId,
                records[i].bookingId,
                records[i].roomCost,
@@ -625,29 +690,24 @@ void reportRevenueByDateRange() {
         matched++;
     }
 
-    adminPrintLine();
+    printf(ADMIN_REVENUE_TABLE_DIV);
 
     if (matched == 0) {
-        printf("  | %-58s|\n",
+        printf("  | %-64s |\n",
                " Khong co hoa don nao trong khoang thoi gian nay.");
-       adminPrintLine();;
+       printf(ADMIN_REVENUE_FULL_DIV);
     } else {
-        printf("  | Khoang thoi gian : %-38s|\n",
-               "");
-        printf("  |   Tu: %-10s  Den: %-31s   |\n", fromDate, toDate);
-        adminPrintLine();
-        printf("  | So hoa don phu hop          : %24d   |\n", matched);
-        adminPrintLine();
-        printf("  | Tong tien phong             : %22.0f VND |\n", sumRoom);
-        adminPrintLine();
-        printf("  | Tong tien dich vu           : %22.0f VND |\n", sumSvc);
-        adminPrintLine();
-        printf("  | Tong phi dich vu (5%%)       : %22.0f VND |\n", sumCharge);
-        adminPrintLine();
-        printf("  | Tong thue VAT (10%%)         : %22.0f VND |\n", sumVat);
-        adminPrintLine();
-        printf("  | TONG DOANH THU GIAI DOAN    : %22.0f VND |\n", sumTotal);
-        adminPrintLine();
+        char rangeLine[80];
+        snprintf(rangeLine, sizeof(rangeLine), "Khoang thoi gian: Tu %s den %s", fromDate, toDate);
+        printf(ADMIN_REVENUE_FULL_DIV);
+        printf("  | %-64.64s |\n", rangeLine);
+        printf("  | %-38s %25d |\n", "So hoa don phu hop:", matched);
+        printf("  | %-38s %21.0f VND |\n", "Tong tien phong:", sumRoom);
+        printf("  | %-38s %21.0f VND |\n", "Tong tien dich vu:", sumSvc);
+        printf("  | %-38s %21.0f VND |\n", "Tong phi dich vu (5%):", sumCharge);
+        printf("  | %-38s %21.0f VND |\n", "Tong thue VAT (10%):", sumVat);
+        printf("  | %-38s %21.0f VND |\n", "TONG DOANH THU GIAI DOAN:", sumTotal);
+        printf(ADMIN_REVENUE_FULL_DIV);
     }
 
     pauseScreen();

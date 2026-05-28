@@ -2,12 +2,12 @@
 #define ROOM_H
 
 /* =============================================
-   ROOM.H - Module quản lý phòng
+   ROOM.H - Module quan ly phong
    ============================================= */
 
 #include "types.h"
 
-/* ---- Hàm CRUD ---- */
+/* ---- Ham CRUD ---- */
 void addRoom(Room rooms[], int *count);
 void editRoom(Room rooms[], int count);
 void deleteRoom(Room rooms[], int *count);
@@ -16,7 +16,7 @@ void listAvailableRooms(Room rooms[], int count);
 void searchRoom(Room rooms[], int count);
 void updateRoomStatus(Room rooms[], int count);
 
-/* ---- Hàm tiện ích ---- */
+/* ---- Ham tien ich ---- */
 int findRoomById(Room rooms[], int count, const char *id);
 int isRoomAvailable(Room rooms[], int count, const char *id);
 void printRoom(Room *room);

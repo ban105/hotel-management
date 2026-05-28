@@ -7,11 +7,37 @@
 /* ============================================================
    HAM BO SUNG: GHI DU LIEU THUAN VAO data/bills.txt DE BAO CAO DOANH THU
    ============================================================ */
-void saveBillRecord(Bill *bill, Booking *booking) {
+static int billRecordExists(const char *billId, const char *bookingId) {
+    FILE *fp = fopen("data/bills.txt", "r");
+    if (!fp) return 0;
+
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        char oldBillId[10], oldBookingId[10];
+        if (sscanf(line, "%9[^,],%9[^,]", oldBillId, oldBookingId) == 2) {
+            if (strcmp(oldBillId, billId) == 0 ||
+                strcmp(oldBookingId, bookingId) == 0) {
+                fclose(fp);
+                return 1;
+            }
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+int saveBillRecord(Bill *bill, Booking *booking) {
+    if (billRecordExists(bill->billId, bill->bookingId)) {
+        printf("  [!] Hoa don %s / booking %s da duoc ghi nhan doanh thu truoc do.\n",
+               bill->billId, bill->bookingId);
+        return 0;
+    }
+
     FILE *fp = fopen("data/bills.txt", "a");
     if (!fp) {
         printf("  [!] Khong the mo hoac tao file data/bills.txt de ghi nhan doanh thu!\n");
-        return;
+        return 0;
     }
     char dateStr[20], timeStr[20];
     getCurrentDateTime(dateStr, timeStr);
@@ -26,6 +52,7 @@ void saveBillRecord(Bill *bill, Booking *booking) {
             bill->total);
 
     fclose(fp);
+    return 1;
 }
 
 static void printBillAmountLine(FILE *stream, const char *label, float amount) {
@@ -189,8 +216,7 @@ void printBill(Bill *bill,
         fprintf(stream, LINE_D);
     }
 
-    fprintf(stream, "| Tong tien dich vu:                         %6.0f VND  |\n",
-            bill->serviceCost);
+    printBillAmountLine(stream, "Tong tien dich vu", bill->serviceCost);
 
     /* --- Tong hop --- */
     fprintf(stream, LINE_D);
@@ -259,7 +285,8 @@ int exportBillToFile(Bill *bill,
 }
 
 /* ============================================================
-   XEM LAI HOA DON THEO MA BOOKING VA DONG BO DOANH THU`r`n   ============================================================ */
+   XEM LAI HOA DON THEO MA BOOKING VA DONG BO DOANH THU
+   ============================================================ */
 void viewBillByBooking(Booking bookings[], int bookingCount,
                        Room rooms[], int roomCount,
                        Customer customers[], int customerCount,
@@ -283,6 +310,12 @@ void viewBillByBooking(Booking bookings[], int bookingCount,
     if (bookings[bkIdx].status == 0) { 
         printf("\n  [!] Canh bao: Booking %s dang o trang thai CHO CHECK-IN.\n", bkId);
         printf("  Khach hang chua nhan phong, khong the tao hoac xem hoa don.\n");
+        pauseScreen();
+        return;
+    }
+
+    if (bookings[bkIdx].status == BOOKING_CANCEL) {
+        printf("\n  [!] Booking %s da bi huy, khong the tao hoac xem hoa don.\n", bkId);
         pauseScreen();
         return;
     }
@@ -332,14 +365,15 @@ void viewBillByBooking(Booking bookings[], int bookingCount,
         safeInput(confirm, sizeof(confirm));
 
         if (confirm[0] == 'Y' || confirm[0] == 'y') {
-            exportBillToFile(&bill,
-                             &bookings[bkIdx],
-                             &rooms[rmIdx],
-                             &customers[cuIdx],
-                             usedServices, usedCount,
-                             services, serviceCount);
-            saveBillRecord(&bill, &bookings[bkIdx]);
-            printf("  [OK] Da ghi nhan doanh thu vao data/bills.txt.\n");
+            if (exportBillToFile(&bill,
+                                 &bookings[bkIdx],
+                                 &rooms[rmIdx],
+                                 &customers[cuIdx],
+                                 usedServices, usedCount,
+                                 services, serviceCount) &&
+                saveBillRecord(&bill, &bookings[bkIdx])) {
+                printf("  [OK] Da ghi nhan doanh thu vao data/bills.txt.\n");
+            }
         }
     }
 

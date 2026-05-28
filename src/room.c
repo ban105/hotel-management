@@ -24,10 +24,10 @@ static int equalsIgnoreCase(const char *a, const char *b) {
 }
 
 /* ============================
-   HÀM HIỂN THỊ NỘI BỘ
+   HAM HIEN THI NOI BO
    ============================ */
 
-/* Chuyển status thành chuỗi */
+/* Chuyen status thanh chuoi */
 static const char* statusStr(int status) {
     switch (status) {
         case ROOM_EMPTY:    return "Trong";
@@ -37,17 +37,17 @@ static const char* statusStr(int status) {
     }
 }
 
-/* In trạng thái phòng (dùng cho các module khác) */
+/* In trang thai phong (dung cho cac module khac) */
 void printRoomStatus(int status) {
     printf("%s", statusStr(status));
 }
 
-/* In viền bảng */
+/* In vien bang */
 static void printTableBorder() {
     printf("  +-----+----------+----------+---------------+------------+\n");
 }
 
-/* In header bảng */
+/* In header bang */
 static void printRoomTableHeader(const char *title) {
     printf("  +--------------------------------------------------------+\n");
     if (title != NULL) {
@@ -65,18 +65,18 @@ static void printRoomTableHeader(const char *title) {
     printf("  +-----+----------+----------+---------------+------------+\n");
 }
 
-/* In footer bảng */
+/* In footer bang */
 static void printRoomTableFooter() {
     printTableBorder();
 }
 
-/* In 1 dòng phòng trong bảng */
+/* In 1 dong phong trong bang */
 static void printRoomRow(int stt, Room *r) {
     printf("  | %-3d | %-8.8s | %-8.8s | %13.0f | %-10.10s |\n",
            stt, r->id, r->type, r->price, statusStr(r->status));
 }
 
-/* In thông tin phòng đơn lẻ */
+/* In thong tin phong don le */
 void printRoom(Room *r) {
     printRoomTableHeader("DANH SACH PHONG");
     printRoomRow(1, r);
@@ -84,8 +84,8 @@ void printRoom(Room *r) {
 }
 
 /* ============================
-   TÌM PHÒNG THEO ID
-   Trả về index, hoặc -1 nếu không tìm thấy
+   TIM PHONG THEO ID
+   Tra ve index, hoac -1 neu khong tim thay
    ============================ */
 int findRoomById(Room rooms[], int count, const char *id) {
     for (int i = 0; i < count; i++) {
@@ -95,7 +95,7 @@ int findRoomById(Room rooms[], int count, const char *id) {
 }
 
 /* ============================
-   KIỂM TRA PHÒNG CÓ TRỐNG KHÔNG
+   KIEM TRA PHONG CO TRONG KHONG
    ============================ */
 int isRoomAvailable(Room rooms[], int count, const char *id) {
     int idx = findRoomById(rooms, count, id);
@@ -104,7 +104,7 @@ int isRoomAvailable(Room rooms[], int count, const char *id) {
 }
 
 /* ============================
-   THÊM PHÒNG
+   THEM PHONG
    ============================ */
 void addRoom(Room rooms[], int *count) {
     if (*count >= MAX_ROOMS) {
@@ -117,7 +117,7 @@ void addRoom(Room rooms[], int *count) {
     clearScreen();
     printHeader("THEM PHONG MOI");
 
-    /* Nhập mã phòng - không được trùng */
+    /* Nhap ma phong - khong duoc trung */
     do {
         printf("  Ma phong (VD: P101): ");
         safeInput(r.id, sizeof(r.id));
@@ -133,7 +133,7 @@ void addRoom(Room rooms[], int *count) {
         }
     } while (!isNotEmpty(r.id));
 
-    /* Chọn loại phòng */
+    /* Chon loai phong */
     printf("\n  Loai phong:\n");
     printf("    1. Single  (1 giuong don)\n");
     printf("    2. Double  (1 giuong doi)\n");
@@ -145,11 +145,11 @@ void addRoom(Room rooms[], int *count) {
         case 3: strcpy(r.type, "VIP");    break;
     }
 
-    /* Nhập giá */
+    /* Nhap gia */
     printf("\n");
     r.price = inputFloat("  Gia/dem (dong): ", 1);
 
-    /* Mặc định: Trống */
+    /* Mac dinh: Trong */
     r.status = ROOM_EMPTY;
 
     rooms[*count] = r;
@@ -162,7 +162,7 @@ void addRoom(Room rooms[], int *count) {
 }
 
 /* ============================
-   SỬA PHÒNG
+   SUA PHONG
    ============================ */
 void editRoom(Room rooms[], int count) {
     if (count == 0) {
@@ -191,7 +191,7 @@ void editRoom(Room rooms[], int count) {
 
     printf("\n  --- Nhap thong tin moi ---\n");
 
-    /* Sửa loại phòng */
+    /* Sua loai phong */
     printf("  Loai phong hien tai: %s\n", rooms[idx].type);
     printf("    1. Single  2. Double  3. VIP  0. Giu nguyen\n");
     int typeChoice = inputInt("  Chon: ", 0, 3);
@@ -199,7 +199,7 @@ void editRoom(Room rooms[], int count) {
     else if (typeChoice == 2) strcpy(rooms[idx].type, "Double");
     else if (typeChoice == 3) strcpy(rooms[idx].type, "VIP");
 
-    /* Sửa giá */
+    /* Sua gia */
     printf("  Gia hien tai: %.0f dong\n", rooms[idx].price);
     float newPrice = inputFloat("  Gia moi (0 = giu nguyen): ", 0);
     if (newPrice > 0) rooms[idx].price = newPrice;
@@ -210,7 +210,7 @@ void editRoom(Room rooms[], int count) {
 }
 
 /* ============================
-   XÓA PHÒNG
+   XOA PHONG
    ============================ */
 void deleteRoom(Room rooms[], int *count) {
     if (*count == 0) {
@@ -264,7 +264,7 @@ void deleteRoom(Room rooms[], int *count) {
         return;
     }
 
-    /* Dời các phần tử sau lên 1 vị trí */
+    /* Doi cac phan tu sau len 1 vi tri */
     for (int i = idx; i < *count - 1; i++) {
         rooms[i] = rooms[i + 1];
     }
@@ -276,7 +276,7 @@ void deleteRoom(Room rooms[], int *count) {
 }
 
 /* ============================
-   XEM DANH SÁCH PHÒNG
+   XEM DANH SACH PHONG
    ============================ */
 void listRooms(Room rooms[], int count) {
     clearScreen();
@@ -288,7 +288,7 @@ void listRooms(Room rooms[], int count) {
         return;
     }
 
-    /* Thống kê nhanh */
+    /* Thong ke nhanh */
     int empty = 0, occupied = 0, maintain = 0;
     for (int i = 0; i < count; i++) {
         if      (rooms[i].status == ROOM_EMPTY)    empty++;
@@ -307,7 +307,7 @@ void listRooms(Room rooms[], int count) {
 }
 
 /* ============================
-   TÌM KIẾM PHÒNG
+   TIM KIEM PHONG
    ============================ */
 void searchRoom(Room rooms[], int count) {
     clearScreen();
@@ -372,7 +372,7 @@ void searchRoom(Room rooms[], int count) {
 }
 
 /* ============================
-   CẬP NHẬT TRẠNG THÁI PHÒNG
+   CAP NHAT TRANG THAI PHONG
    ============================ */
 void updateRoomStatus(Room rooms[], int count) {
     clearScreen();
@@ -390,13 +390,31 @@ void updateRoomStatus(Room rooms[], int count) {
         return;
     }
 
+    Booking bookings[MAX_BOOKINGS];
+    int bookingCount = loadBookings(bookings);
+    for (int i = 0; i < bookingCount; i++) {
+        if (strcmp(bookings[i].roomId, id) == 0 &&
+            (bookings[i].status == BOOKING_PENDING ||
+             bookings[i].status == BOOKING_CHECKIN)) {
+            printf("  [!] Phong %s dang co booking active, khong the doi trang thai thu cong.\n", id);
+            printf("      Hay huy booking hoac check-out truoc khi cap nhat trang thai phong.\n");
+            pauseScreen();
+            return;
+        }
+    }
+
     printf("\n  Trang thai hien tai: [%s]\n", statusStr(rooms[idx].status));
     printf("  Chon trang thai moi:\n");
     printf("    0. Trong\n");
-    printf("    1. Dang thue\n");
     printf("    2. Bao tri\n");
 
     int newStatus = inputInt("  Chon (0-2): ", 0, 2);
+    if (newStatus == ROOM_OCCUPIED) {
+        printf("  [!] Trang thai 'Dang thue' chi duoc cap nhat qua chuc nang check-in.\n");
+        pauseScreen();
+        return;
+    }
+
     if (newStatus == rooms[idx].status) {
         printf("  Trang thai khong thay doi.\n");
     } else {
@@ -408,7 +426,7 @@ void updateRoomStatus(Room rooms[], int count) {
 }
 
 /* ============================
-   LƯU PHÒNG VÀO FILE
+   LUU PHONG VAO FILE
    ============================ */
 void saveRooms(Room rooms[], int count) {
     FILE *fp = fopen(ROOM_FILE, "w");
@@ -425,8 +443,8 @@ void saveRooms(Room rooms[], int count) {
 }
 
 /* ============================
-   ĐỌC PHÒNG TỪ FILE
-   Trả về số phòng đọc được
+   DOC PHONG TU FILE
+   Tra ve so phong doc duoc
    ============================ */
 int loadRooms(Room rooms[]) {
     FILE *fp = fopen(ROOM_FILE, "r");
@@ -446,7 +464,7 @@ int loadRooms(Room rooms[]) {
 }
 
 /* ============================
-   XEM DANH SÁCH PHÒNG TRỐNG
+   XEM DANH SACH PHONG TRONG
    ============================ */
 void listAvailableRooms(Room rooms[], int count) {
     clearScreen();
@@ -469,7 +487,7 @@ void listAvailableRooms(Room rooms[], int count) {
 }
 
 /* ============================
-   MENU QUẢN LÝ PHÒNG
+   MENU QUAN LY PHONG
    ============================ */
 void menuRoom(Room rooms[], int *count) {
     int choice;
