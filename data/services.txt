@@ -7,3 +7,4 @@ DV006,Thue xe,150000,ngay
 DV007,Dat ve may bay,500000,ve
 DV008,Goi do an them,60000,mon
 DV009,Do uong co con,150000,chai
+DV010,Du lich sinh thai,500000,luot

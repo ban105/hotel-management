@@ -56,6 +56,9 @@ int  exportBillToFile(Bill *bill,
                       UsedService usedServices[], int usedCount,
                       Service services[], int serviceCount);
 
+/* Ghi nhan hoa don vao data/bills.txt de bao cao doanh thu */
+int  saveBillRecord(Bill *bill, Booking *booking);
+
 /* Hien hoa don tren man hinh terminal */
 void displayBill(Bill *bill,
                  Booking *booking,

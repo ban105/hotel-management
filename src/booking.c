@@ -4,6 +4,7 @@
 #include <time.h>
 #include "booking.h"
 #include "customer.h"
+#include "bill.h"
 #include "utils.h"
 
 #define BOOKING_FILE "data/bookings.txt"
@@ -592,6 +593,24 @@ void checkOut(Booking bookings[], int bookingCount,
 
     saveBookings(bookings, bookingCount);
     saveRooms(rooms, roomCount);
+
+    Service services[MAX_SERVICES];
+    UsedService usedServices[MAX_USED_SERVICES];
+    int serviceCount = loadServices(services);
+    int usedCount = loadUsedServices(usedServices);
+
+    Bill bill;
+    memset(&bill, 0, sizeof(Bill));
+    if (createBill(&bill,
+                   &bookings[bIdx],
+                   &rooms[rIdx],
+                   &customers[cIdx],
+                   usedServices, usedCount,
+                   services, serviceCount)) {
+        saveBillRecord(&bill, &bookings[bIdx]);
+    } else {
+        printf("  [!] Check-out thanh cong nhung khong the ghi nhan doanh thu.\n");
+    }
 
     printf("\n  [OK] Check-out thanh cong! Cam on quy khach.\n");
     pauseScreen();

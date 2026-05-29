@@ -40,7 +40,9 @@ void mainMenu(Room rooms[], int *roomCount,
         printf("| 4. Quan ly Dich vu                                     |\n");
         printf("| 5. Quan ly Hoa don                                     |\n");
         if (currentRole == ROLE_ADMIN)
-            printf("| 6. Khu vuc Quan tri vien (Admin)                       |\n");
+            printf("| 6. Khu vuc Quan tri vien                               |\n");
+        else
+            printf("| 6. Khu vuc Quan tri vien             (Admin)           |\n");
         printf("| 0. Thoat chuong trinh                                  |\n");
         printLine(58);
 
