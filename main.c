@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 #include "types.h"
 #include "menu.h"
 #include "room.h"
@@ -7,20 +6,15 @@
 #include "booking.h"
 #include "service.h"
 #include "bill.h"
-#include "admin.h"      
 #include "utils.h"
-#include "employee.h"
 
 
 void syncRoomStatusWithBookings(Room rooms[], int roomCount,
                                 Booking bookings[], int bookingCount) {
-    
     for (int j = 0; j < roomCount; j++) {
-        if (rooms[j].status == ROOM_OCCUPIED)
-            rooms[j].status = ROOM_EMPTY;
+        rooms[j].status = ROOM_EMPTY;
     }
 
-    
     for (int i = 0; i < bookingCount; i++) {
         int rIdx = findRoomById(rooms, roomCount, bookings[i].roomId);
         if (rIdx < 0) continue;
@@ -32,8 +26,7 @@ void syncRoomStatusWithBookings(Room rooms[], int roomCount,
 
             case BOOKING_DONE:      
             case BOOKING_CANCEL:    
-                if (rooms[rIdx].status != ROOM_MAINTAIN)
-                    rooms[rIdx].status = ROOM_EMPTY;
+                rooms[rIdx].status = ROOM_EMPTY;
                 break;
         }
     }
@@ -54,8 +47,6 @@ int main() {
     int         serviceCount = 0;
     UsedService usedServices[MAX_USED_SERVICES];
     int         usedCount    = 0;
-    Employee employees[MAX_EMPLOYEES];
-    int         employeeCount = 0;
 
 
     // 1. Tai toan bo du lieu tu file text len mang RAM
@@ -64,7 +55,7 @@ int main() {
     bookingCount  = loadBookings(bookings);
     serviceCount  = loadServices(services);
     usedCount     = loadUsedServices(usedServices);
-    employeeCount = loadEmployees(employees);
+    sanitizeBillRecords(bookings, bookingCount);
 
     // ================================================================
     // 2. DONG BO HOA DU LIEU
@@ -90,20 +81,12 @@ int main() {
     printf("  +------------------------------------------+\n");
     pauseScreen();
 
-    User currentUser;
-    if (!systemLogin(&currentUser)) {
-        printf("\n  Da huy dang nhap. Thoat chuong trinh.\n");
-        return 0;
-    }
-
     // 4. Vao vong lap Menu chinh
     mainMenu(rooms,        &roomCount,
              customers,    &customerCount,
              bookings,     &bookingCount,
              usedServices, &usedCount,
-             services,     &serviceCount,
-             employees,    &employeeCount,
-             currentUser.role);
+             services,     &serviceCount);
 
     return 0;
 }

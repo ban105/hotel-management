@@ -4,6 +4,8 @@
 #include "bill.h"
 #include "utils.h"
 
+#define MAX_BILLS 500
+
 /* ============================================================
    HAM BO SUNG: GHI DU LIEU THUAN VAO data/bills.txt DE BAO CAO DOANH THU
    ============================================================ */
@@ -28,6 +30,11 @@ static int billRecordExists(const char *billId, const char *bookingId) {
 }
 
 int saveBillRecord(Bill *bill, Booking *booking) {
+    if (!booking || booking->status != BOOKING_DONE) {
+        printf("  [!] Chi ghi doanh thu khi booking da check-out.\n");
+        return 0;
+    }
+
     if (billRecordExists(bill->billId, bill->bookingId)) {
         printf("  [!] Hoa don %s / booking %s da duoc ghi nhan doanh thu truoc do.\n",
                bill->billId, bill->bookingId);
@@ -53,6 +60,32 @@ int saveBillRecord(Bill *bill, Booking *booking) {
 
     fclose(fp);
     return 1;
+}
+
+void sanitizeBillRecords(Booking bookings[], int bookingCount) {
+    FILE *fp = fopen("data/bills.txt", "r");
+    if (!fp) return;
+
+    char lines[MAX_BILLS][256];
+    int keep = 0;
+    char line[256];
+
+    while (fgets(line, sizeof(line), fp) && keep < MAX_BILLS) {
+        char billId[10], bookingId[10];
+        if (sscanf(line, "%9[^,],%9[^,]", billId, bookingId) != 2) continue;
+
+        int idx = findBookingById(bookings, bookingCount, bookingId);
+        if (idx < 0) continue;
+        if (bookings[idx].status != BOOKING_DONE) continue;
+
+        strcpy(lines[keep++], line);
+    }
+    fclose(fp);
+
+    fp = fopen("data/bills.txt", "w");
+    if (!fp) return;
+    for (int i = 0; i < keep; i++) fputs(lines[i], fp);
+    fclose(fp);
 }
 
 static void printBillAmountLine(FILE *stream, const char *label, float amount) {
@@ -100,12 +133,9 @@ int createBill(Bill *bill,
                                         services, serviceCount,
                                         booking->bookingId);
 
-    bill->serviceCharge = (bill->roomCost + bill->serviceCost) * SERVICE_CHARGE_RATE;
-
-    bill->vat = (bill->roomCost + bill->serviceCost + bill->serviceCharge) * VAT_RATE;
-
-    bill->total = bill->roomCost + bill->serviceCost
-                + bill->serviceCharge + bill->vat;
+    bill->serviceCharge = 0.0f;
+    bill->vat = 0.0f;
+    bill->total = bill->roomCost + bill->serviceCost;
 
     return 1;
 }
@@ -225,10 +255,6 @@ void printBill(Bill *bill,
     printBillAmountLine(stream, "Tien phong", bill->roomCost);
     fprintf(stream, LINE_D);
     printBillAmountLine(stream, "Tien dich vu", bill->serviceCost);
-    fprintf(stream, LINE_D);
-    printBillAmountLine(stream, "Phi dich vu (5%)", bill->serviceCharge);
-    fprintf(stream, LINE_D);
-    printBillAmountLine(stream, "Thue VAT (10%)", bill->vat);
     fprintf(stream, LINE_E);
     printBillAmountLine(stream, "TONG THANH TOAN", bill->total);
     fprintf(stream, LINE_E);
@@ -237,21 +263,6 @@ void printBill(Bill *bill,
 
     #undef LINE_D
     #undef LINE_E
-}
-
-/* ============================================================
-   HIEN HOA DON TREN MAN HINH TERMINAL
-   ============================================================ */
-void displayBill(Bill *bill,
-                 Booking *booking,
-                 Room *room,
-                 Customer *customer,
-                 UsedService usedServices[], int usedCount,
-                 Service services[], int serviceCount) {
-
-    printBill(bill, booking, room, customer,
-              usedServices, usedCount, services, serviceCount,
-              stdout);
 }
 
 /* ============================================================
@@ -284,131 +295,66 @@ int exportBillToFile(Bill *bill,
     return 1;
 }
 
-/* ============================================================
-   XEM LAI HOA DON THEO MA BOOKING VA DONG BO DOANH THU
-   ============================================================ */
 void viewBillByBooking(Booking bookings[], int bookingCount,
                        Room rooms[], int roomCount,
                        Customer customers[], int customerCount,
                        UsedService usedServices[], int usedCount,
                        Service services[], int serviceCount) {
-
     clearScreen();
-    printHeader("XEM HOA DON");
+    printHeader("XEM/IN HOA DON");
 
-    char bkId[10];
+    char id[10];
     printf("  Nhap ma booking: ");
-    safeInput(bkId, sizeof(bkId));
+    safeInput(id, sizeof(id));
+    trimStr(id);
 
-    int bkIdx = findBookingById(bookings, bookingCount, bkId);
-    if (bkIdx < 0) {
-        printf("  [!] Khong tim thay booking %s\n", bkId);
+    int bIdx = findBookingById(bookings, bookingCount, id);
+    if (bIdx < 0) {
+        printf("  [!] Khong tim thay booking.\n");
+        pauseScreen();
+        return;
+    }
+    if (bookings[bIdx].status == BOOKING_CANCEL) {
+        printf("  [!] Booking da huy, khong co hoa don.\n");
         pauseScreen();
         return;
     }
 
-    if (bookings[bkIdx].status == 0) { 
-        printf("\n  [!] Canh bao: Booking %s dang o trang thai CHO CHECK-IN.\n", bkId);
-        printf("  Khach hang chua nhan phong, khong the tao hoac xem hoa don.\n");
-        pauseScreen();
-        return;
-    }
-
-    if (bookings[bkIdx].status == BOOKING_CANCEL) {
-        printf("\n  [!] Booking %s da bi huy, khong the tao hoac xem hoa don.\n", bkId);
-        pauseScreen();
-        return;
-    }
-
-    int rmIdx = findRoomById(rooms, roomCount, bookings[bkIdx].roomId);
-    int cuIdx = findCustomerById(customers, customerCount, bookings[bkIdx].customerId);
-
-    if (rmIdx < 0 || cuIdx < 0) {
-        printf("  [!] Khong tim thay thong tin phong hoac khach hang.\n");
+    int rIdx = findRoomById(rooms, roomCount, bookings[bIdx].roomId);
+    int cIdx = findCustomerById(customers, customerCount, bookings[bIdx].customerId);
+    if (rIdx < 0 || cIdx < 0) {
+        printf("  [!] Loi du lieu phong/khach.\n");
         pauseScreen();
         return;
     }
 
     Bill bill;
     memset(&bill, 0, sizeof(Bill));
-
-    int ok = createBill(&bill,
-                        &bookings[bkIdx],
-                        &rooms[rmIdx],
-                        &customers[cuIdx],
-                        usedServices, usedCount,
-                        services, serviceCount);
-
-    if (!ok) {
-        printf("  [!] Khong the tao hoa don.\n");
+    if (!createBill(&bill, &bookings[bIdx], &rooms[rIdx], &customers[cIdx],
+                    usedServices, usedCount, services, serviceCount)) {
+        printf("  [!] Khong tao duoc hoa don.\n");
         pauseScreen();
         return;
     }
 
-    displayBill(&bill,
-                &bookings[bkIdx],
-                &rooms[rmIdx],
-                &customers[cuIdx],
-                usedServices, usedCount,
-                services, serviceCount);
+    printBill(&bill, &bookings[bIdx], &rooms[rIdx], &customers[cIdx],
+              usedServices, usedCount, services, serviceCount, stdout);
 
-    /* ========================================================
-       KHI XUAT FILE SE DONG THOI GHI VAO data/bills.txt
-       ======================================================== */
-    if (bookings[bkIdx].status == 1) { 
-        printf("\n  [Luu y] Phong nay chua lam thu tuc Check-out.\n");
-        printf("  Day chi la phieu tam thoi tren man hinh, khong the ket xuat file hoa don.\n");
-    } 
-    else if (bookings[bkIdx].status == 2) { 
-        printf("\n  Xuat hoa don ra file de in an va cap nhat doanh thu? (y/n): ");
-        char confirm[5];
-        safeInput(confirm, sizeof(confirm));
-
-        if (confirm[0] == 'Y' || confirm[0] == 'y') {
-            if (exportBillToFile(&bill,
-                                 &bookings[bkIdx],
-                                 &rooms[rmIdx],
-                                 &customers[cuIdx],
-                                 usedServices, usedCount,
-                                 services, serviceCount) &&
-                saveBillRecord(&bill, &bookings[bkIdx])) {
-                printf("  [OK] Da ghi nhan doanh thu vao data/bills.txt.\n");
-            }
-        }
+    if (bookings[bIdx].status == BOOKING_CHECKIN) {
+        printf("\n  [Luu y] Booking dang o: chi xem hoa don tam tinh, chua duoc in file.\n");
+        pauseScreen();
+        return;
     }
 
+    printf("\n  In hoa don ra file? (y/n): ");
+    char cf[5];
+    safeInput(cf, sizeof(cf));
+    if (cf[0] == 'y' || cf[0] == 'Y') {
+        if (exportBillToFile(&bill, &bookings[bIdx], &rooms[rIdx], &customers[cIdx],
+                             usedServices, usedCount, services, serviceCount)) {
+            saveBillRecord(&bill, &bookings[bIdx]);
+        }
+    }
     pauseScreen();
 }
 
-/* ============================================================
-   MENU QUAN LY HOA DON
-   ============================================================ */
-void menuBill(Booking bookings[], int bookingCount,
-              Room rooms[], int roomCount,
-              Customer customers[], int customerCount,
-              UsedService usedServices[], int usedCount,
-              Service services[], int serviceCount) {
-
-    int choice;
-    do {
-        clearScreen();
-        printHeader("QUAN LY HOA DON");
-        printf("| 1. Xem / In hoa don theo booking                       |\n");
-        printf("| 0. Quay lai menu chinh                                 |\n");
-        printLine(58);
-
-        choice = inputInt("  Chon: ", 0, 1);
-
-        switch (choice) {
-            case 1:
-                viewBillByBooking(bookings, bookingCount,
-                                  rooms, roomCount,
-                                  customers, customerCount,
-                                  usedServices, usedCount,
-                                  services, serviceCount);
-                break;
-            default:
-                break;
-        }
-    } while (choice != 0);
-}

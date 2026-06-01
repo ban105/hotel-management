@@ -5,30 +5,19 @@
 #include "room.h"
 #include "customer.h"
 
-#define BOOKING_PENDING  0
-#define BOOKING_CHECKIN  1
-#define BOOKING_DONE     2
-#define BOOKING_CANCEL   3
-#define MAX_BOOKINGS     100
-
-void addBooking(Booking bookings[], int *bookingCount,
-                Room rooms[], int roomCount,
-                Customer customers[], int customerCount);
-
-void cancelBooking(Booking bookings[], int bookingCount,
-                   Room rooms[], int roomCount);
-
 void listBookings(Booking bookings[], int count,
                   Customer customers[], int customerCount,
                   Room rooms[], int roomCount);
 
-void checkIn(Booking bookings[], int bookingCount,
+void checkIn(Booking bookings[], int *bookingCount,
              Room rooms[], int roomCount,
              Customer customers[], int customerCount);
 
 void checkOut(Booking bookings[], int bookingCount,
               Room rooms[], int roomCount,
               Customer customers[], int customerCount);
+void cancelBooking(Booking bookings[], int bookingCount,
+                   Room rooms[], int roomCount);
 
 int   findBookingById(Booking bookings[], int count, const char *id);
 void  generateBookingId(Booking bookings[], int count, char *id);

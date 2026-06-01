@@ -17,8 +17,6 @@
                 "src/booking.c",
                 "src/service.c",
                 "src/bill.c",
-                "src/admin.c",
-                "src/employee.c",
                 "src/menu.c",
                 "src/utils.c",
                 "-o",
@@ -34,7 +32,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Build full hotel management project."
+            "detail": "Build simplified hotel management project."
         }
     ],
     "version": "2.0.0"

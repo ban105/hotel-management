@@ -5,12 +5,9 @@
 
 /* CRUD */
 void addCustomer(Customer customers[], int *count);
-void editCustomer(Customer customers[], int count);
 void deleteCustomer(Customer customers[], int *count,
                     Booking bookings[], int bookingCount);
 void listCustomers(Customer customers[], int count);
-void searchCustomer(Customer customers[], int count);
-void updateCustomerRank(Customer customers[], int count);
 const char* rankStr(int rank);
 float rankDiscount(int rank);
 

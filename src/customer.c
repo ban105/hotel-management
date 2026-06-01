@@ -31,50 +31,9 @@ float rankDiscount(int rank) {
     }
 }
 
-/* Dem ky tu UTF-8 de can bang cot. */
-static int countUtf8Characters(const char *str) {
-    int count = 0;
-    while (*str) {
-        if ((*str & 0xC0) != 0x80) {
-            count++;
-        }
-        str++;
-    }
-    return count;
-}
-
-static void printCellWithPadding(const char *str, int width) {
-    char clipped[128];
-    snprintf(clipped, sizeof(clipped), "%.*s", width, str);
-    int visibleChars = countUtf8Characters(clipped);
-    int paddingNeeded = width - visibleChars;
-    printf("%s", clipped);
-    for (int i = 0; i < paddingNeeded; i++) {
-        printf(" ");
-    }
-}
-
-
 static void printTableBorder() {
-    
     printf("  +--------+----------------------+---------------+------------------+--------+----------+\n");
 }
-
-
-static void printFunctionBanner(const char *title) {
-    printf("  +--------------------------------------------------------------------------------------+\n");
-    if (title != NULL) {
-        int titleLen = strlen(title);
-        int pad = (86 - titleLen) / 2;
-        printf("  |");
-        for (int i = 0; i < pad; i++) printf(" ");
-        printf("%s", title);
-        for (int i = 0; i < 86 - pad - titleLen; i++) printf(" ");
-        printf("|\n");
-    }
-    printf("  +--------------------------------------------------------------------------------------+\n");
-}
-
 
 static void printCustomerTableHeader() {
     printTableBorder();
@@ -92,9 +51,8 @@ static void printCustomerRow(Customer *c) {
     char discStr[10];
     if (disc > 0) sprintf(discStr, "%.0f%%", disc);
     else          sprintf(discStr, "-");
-    printf("  | %-6s | ", c->id);
-    printCellWithPadding(c->name, 20);
-    printf(" | %-13.13s | %-16.16s | %-6.6s | %-8.8s |\n",
+    printf("  | %-6s | %-20.20s | %-13.13s | %-16.16s | %-6.6s | %-8.8s |\n",
+           c->id, c->name,
            c->phone, c->cccd, rankStr(c->rank), discStr);
 }
 
@@ -142,7 +100,7 @@ void addCustomer(Customer customers[], int *count) {
 
     Customer c;
     clearScreen();
-    printFunctionBanner("THEM KHACH HANG MOI");
+    printHeader("THEM KHACH HANG MOI");
 
     generateCustomerId(customers, *count, c.id);
     printf("\n  Ma khach hang: %s (tu dong)\n\n", c.id);
@@ -197,68 +155,6 @@ void addCustomer(Customer customers[], int *count) {
     pauseScreen();
 }
 
-/* ============================
-   SUA KHACH HANG
-   ============================ */
-void editCustomer(Customer customers[], int count) {
-    if (count == 0) {
-        printf("  [!] Chua co khach hang nao!\n");
-        pauseScreen(); return;
-    }
-
-    clearScreen();
-    printFunctionBanner("SUA THONG TIN KHACH HANG");
-
-    char id[10];
-    printf("\n  Nhap ma khach hang: ");
-    safeInput(id, sizeof(id));
-    trimStr(id);
-
-    int idx = findCustomerById(customers, count, id);
-    if (idx == -1) {
-        printf("  [!] Khong tim thay '%s'!\n", id);
-        pauseScreen(); return;
-    }
-
-    printf("\n  Thong tin hien tai:\n");
-    printCustomer(&customers[idx]);
-    printf("\n  --- Nhap thong tin moi (Enter = giu nguyen) ---\n\n");
-
-    char buf[50];
-
-    printf("  Ho ten [%s]: ", customers[idx].name);
-    safeInput(buf, sizeof(buf)); trimStr(buf);
-    if (isNotEmpty(buf)) strcpy(customers[idx].name, buf);
-
-    printf("  So dien thoai [%s]: ", customers[idx].phone);
-    safeInput(buf, sizeof(buf)); trimStr(buf);
-    if (isNotEmpty(buf)) {
-        if (!isNumeric(buf))
-            printf("  [!] Khong hop le, giu nguyen.\n");
-        else if (findCustomerByPhone(customers, count, buf) != -1 &&
-                 strcmp(buf, customers[idx].phone) != 0)
-            printf("  [!] Da ton tai, giu nguyen.\n");
-        else
-            strcpy(customers[idx].phone, buf);
-    }
-
-    printf("  So CCCD [%s]: ", customers[idx].cccd);
-    safeInput(buf, sizeof(buf)); trimStr(buf);
-    if (isNotEmpty(buf)) {
-        if (!isNumeric(buf)) printf("  [!] Khong hop le, giu nguyen.\n");
-        else strcpy(customers[idx].cccd, buf);
-    }
-
-    printf("  Hang hien tai: %s\n", rankStr(customers[idx].rank));
-    printf("    0. Bronze  1. Silver (5%%)  2. Gold (15%%)  9. Giu nguyen\n");
-    int rankChoice = inputInt("  Chon: ", 0, 9);
-    if (rankChoice >= 0 && rankChoice <= 2)
-        customers[idx].rank = rankChoice;
-
-    saveCustomers(customers, count);
-    printf("\n  [OK] Da cap nhat khach hang %s!\n", id);
-    pauseScreen();
-}
 
 /* ============================
    XOA KHACH HANG
@@ -266,7 +162,7 @@ void editCustomer(Customer customers[], int count) {
 void deleteCustomer(Customer customers[], int *count,
                     Booking bookings[], int bookingCount) {
     clearScreen();
-    printFunctionBanner("XOA KHACH HANG");
+    printHeader("XOA KHACH HANG");
 
     char id[15];
     printf("\n  Nhap ma khach hang can xoa (vi du: KH001): ");
@@ -319,7 +215,9 @@ void deleteCustomer(Customer customers[], int *count,
    ============================ */
 void listCustomers(Customer customers[], int count) {
     clearScreen();
-    printFunctionBanner("DANH SACH KHACH HANG");
+    printf("  +--------------------------------------------------------------------------------------+\n");
+    printf("  |                               DANH SACH KHACH HANG                                   |\n");
+    printf("  +--------------------------------------------------------------------------------------+\n");
 
     if (count == 0) {
         printf("  (Chua co khach hang nao)\n");
@@ -341,111 +239,6 @@ void listCustomers(Customer customers[], int count) {
     printCustomerTableFooter();
     printf("  Tong: %d  |  Bronze: %d  |  Silver: %d  |  Gold: %d\n",
            count, bronze, silver, gold);
-    pauseScreen();
-}
-
-/* ============================
-   TIM KIEM KHACH HANG
-   ============================ */
-void searchCustomer(Customer customers[], int count) {
-    clearScreen();
-    printFunctionBanner("TIM KIEM KHACH HANG");
-
-    if (count == 0) {
-        printf("  (Chua co khach hang nao)\n");
-        pauseScreen(); return;
-    }
-
-    printf("  Tim theo:\n");
-    printf("    1. Ma khach hang\n");
-    printf("    2. Ho ten\n");
-    printf("    3. So dien thoai\n");
-    printf("    4. Hang thanh vien\n");
-    int choice = inputInt("  Chon (1-4): ", 1, 4);
-
-    int found = 0;
-    printf("\n  Ket qua:\n");
-
-    if (choice == 1) {
-        char id[10];
-        printf("  Nhap ma KH: ");
-        safeInput(id, sizeof(id)); trimStr(id);
-        printCustomerTableHeader();
-        int idx = findCustomerById(customers, count, id);
-        if (idx != -1) { printCustomerRow(&customers[idx]); found = 1; }
-
-    } else if (choice == 2) {
-        char name[50];
-        printf("  Nhap ho ten: ");
-        safeInput(name, sizeof(name)); trimStr(name);
-        printCustomerTableHeader();
-        for (int i = 0; i < count; i++) {
-            char tmpC[50], tmpN[50];
-            strcpy(tmpC, customers[i].name);
-            strcpy(tmpN, name);
-            toLowerStr(tmpC); toLowerStr(tmpN);
-            if (strstr(tmpC, tmpN)) { printCustomerRow(&customers[i]); found++; }
-        }
-
-    } else if (choice == 3) {
-        char phone[15];
-        printf("  Nhap so dien thoai: ");
-        safeInput(phone, sizeof(phone)); trimStr(phone);
-        printCustomerTableHeader();
-        int idx = findCustomerByPhone(customers, count, phone);
-        if (idx != -1) { printCustomerRow(&customers[idx]); found = 1; }
-
-    } else if (choice == 4) {
-        printf("  Hang:  0. Bronze  1. Silver  2. Gold\n");
-        int rank = inputInt("  Chon (0-2): ", 0, 2);
-        printCustomerTableHeader();
-        for (int i = 0; i < count; i++)
-            if (customers[i].rank == rank) { printCustomerRow(&customers[i]); found++; }
-    }
-
-    printCustomerTableFooter();
-    if (found == 0) printf("  Khong tim thay ket qua.\n");
-    else            printf("  Tim thay %d khach hang.\n", found);
-    pauseScreen();
-}
-
-/* ============================
-   NANG/HA HANG THANH VIEN
-   ============================ */
-void updateCustomerRank(Customer customers[], int count) {
-    clearScreen();
-    printFunctionBanner("CAP NHAT HANG THANH VIEN");
-
-    char id[10];
-    printf("\n  Nhap ma khach hang: ");
-    safeInput(id, sizeof(id)); trimStr(id);
-
-    int idx = findCustomerById(customers, count, id);
-    if (idx == -1) {
-        printf("  [!] Khong tim thay '%s'!\n", id);
-        pauseScreen(); return;
-    }
-
-    printf("\n  Khach hang: %s - %s\n",
-           customers[idx].id, customers[idx].name);
-    printf("  Hang hien tai: %s", rankStr(customers[idx].rank));
-    if (rankDiscount(customers[idx].rank) > 0)
-        printf(" (giam %.0f%%)", rankDiscount(customers[idx].rank) * 100);
-    printf("\n\n");
-
-    printf("  Chon hang moi:\n");
-    printf("    0. Bronze  - Khong giam gia\n");
-    printf("    1. Silver  - Giam 5%%\n");
-    printf("    2. Gold    - Giam 15%%\n");
-
-    int newRank = inputInt("  Chon (0-2): ", 0, 2);
-    if (newRank == customers[idx].rank) {
-        printf("  Hang khong thay doi.\n");
-    } else {
-        customers[idx].rank = newRank;
-        saveCustomers(customers, count);
-        printf("  [OK] Da nang hang %s -> %s!\n", id, rankStr(newRank));
-    }
     pauseScreen();
 }
 
@@ -505,23 +298,17 @@ void menuCustomer(Customer customers[], int *count,
         printHeader("QUAN LY KHACH HANG");
         printf("| 1. Xem danh sach khach hang                            |\n");
         printf("| 2. Them khach hang moi                                 |\n");
-        printf("| 3. Sua thong tin khach hang                            |\n");
-        printf("| 4. Xoa khach hang                                      |\n");
-        printf("| 5. Tim kiem khach hang                                 |\n");
-        printf("| 6. Cap nhat hang thanh vien                            |\n");
+        printf("| 3. Xoa khach hang                                      |\n");
         printf("| 0. Quay lai menu chinh                                 |\n");
         printLine(58);
 
-        choice = inputInt("  Chon chuc nang: ", 0, 6);
+        choice = inputInt("  Chon chuc nang: ", 0, 3);
 
         switch (choice) {
             case 1: listCustomers(customers, *count);     break;
             case 2: addCustomer(customers, count);        break;
-            case 3: editCustomer(customers, *count);      break;
-            case 4: deleteCustomer(customers, count,
+            case 3: deleteCustomer(customers, count,
                                     bookings, bookingCount); break;
-            case 5: searchCustomer(customers, *count);    break;
-            case 6: updateCustomerRank(customers, *count); break;
             case 0: break;
         }
     } while (choice != 0);

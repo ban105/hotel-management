@@ -9,12 +9,6 @@
 #include "service.h"
 
 /* ============================================================
-   HANG SO THUE VA PHI
-   ============================================================ */
-#define SERVICE_CHARGE_RATE 0.05f  
-#define VAT_RATE            0.10f  
-
-/* ============================================================
    STRUCT HOA DON
    ============================================================ */
 typedef struct {
@@ -58,16 +52,7 @@ int  exportBillToFile(Bill *bill,
 
 /* Ghi nhan hoa don vao data/bills.txt de bao cao doanh thu */
 int  saveBillRecord(Bill *bill, Booking *booking);
-
-/* Hien hoa don tren man hinh terminal */
-void displayBill(Bill *bill,
-                 Booking *booking,
-                 Room *room,
-                 Customer *customer,
-                 UsedService usedServices[], int usedCount,
-                 Service services[], int serviceCount);
-
-/* Xem lai hoa don theo ma booking */
+void sanitizeBillRecords(Booking bookings[], int bookingCount);
 void viewBillByBooking(Booking bookings[], int bookingCount,
                        Room rooms[], int roomCount,
                        Customer customers[], int customerCount,
@@ -76,12 +61,5 @@ void viewBillByBooking(Booking bookings[], int bookingCount,
 
 /* Tao ma hoa don tu ma booking: BK001 -> HD001 */
 void generateBillIdFromBooking(char *billId, const char *bookingId);
-
-/* Menu quan ly hoa don */
-void menuBill(Booking bookings[], int bookingCount,
-              Room rooms[], int roomCount,
-              Customer customers[], int customerCount,
-              UsedService usedServices[], int usedCount,
-              Service services[], int serviceCount);
 
 #endif /* BILL_H */

@@ -9,8 +9,6 @@ SRC := main.c \
        src/booking.c \
        src/service.c \
        src/bill.c \
-       src/admin.c \
-       src/employee.c \
        src/menu.c \
        src/utils.c
 

@@ -5,50 +5,11 @@
 #include "utils.h"
 
 #define SERVICE_TABLE_DIV "  +----------+------------------------+------------+---------+\n"
-#define SERVICE_TABLE_FULL_DIV "  +----------------------------------------------------------+\n"
-#define SERVICE_TABLE_WIDTH 60
-#define SERVICE_BOOKING_INFO_DIV "  +------------+---------------------------------------------+\n"
 #define USED_SERVICE_CONFIRM_DIV "  +----------+------------------------+-------+--------------+\n"
 #define USED_SERVICE_CONFIRM_FULL_DIV "  +----------------------------------------------------------+\n"
-#define USED_SERVICE_CANCEL_DIV "  +-------+----------+------------------------+-------+--------------+\n"
-#define USED_SERVICE_CANCEL_FULL_DIV "  +------------------------------------------------------------------+\n"
-#define USED_SERVICE_VIEW_DIV "  +----------+--------------------+------+----------+------------+\n"
-#define USED_SERVICE_VIEW_FULL_DIV "  +--------------------------------------------------------------+\n"
-#define USED_SERVICE_INFO_DIV "  +---------------+----------------------------------------------+\n"
 
 static void printServiceTableHeader(const char *title) {
-    int width = SERVICE_TABLE_WIDTH - 4;
-    int titleLen = strlen(title);
-    if (titleLen > width) titleLen = width;
-    int left = (width - titleLen) / 2;
-    int right = width - titleLen - left;
-
-    printf(SERVICE_TABLE_FULL_DIV);
-    printf("  | ");
-    for (int i = 0; i < left; i++) printf(" ");
-    printf("%.*s", width, title);
-    for (int i = 0; i < right; i++) printf(" ");
-    printf(" |\n");
-    printf(SERVICE_TABLE_FULL_DIV);
-}
-
-static void printServiceBoxHeader(const char *border, int innerWidth, const char *title) {
-    int titleLen = strlen(title);
-    if (titleLen > innerWidth) titleLen = innerWidth;
-    int left = (innerWidth - titleLen) / 2;
-    int right = innerWidth - titleLen - left;
-
-    printf(border);
-    printf("  | ");
-    for (int i = 0; i < left; i++) printf(" ");
-    printf("%.*s", innerWidth, title);
-    for (int i = 0; i < right; i++) printf(" ");
-    printf(" |\n");
-    printf(border);
-}
-
-static void printServiceInfoRow(const char *label, const char *value) {
-    printf("  | %-10.10s | %-43.43s |\n", label, value);
+    printf("\n  %s\n", title);
 }
 
 /* ============================================================
@@ -173,14 +134,6 @@ static void mergeActiveUsedServices(UsedService usedServices[], int *usedCount) 
 }
 
 /* ============================================================
-   IN THONG TIN 1 DICH VU
-   ============================================================ */
-void printService(Service *s) {
-    printf("  [%s] %s - %.0f VND/%s\n",
-           s->serviceId, s->serviceName, s->price, s->unit);
-}
-
-/* ============================================================
    GOI DICH VU CHO BOOKING DANG CHECK-IN
    ============================================================ */
 void addUsedService(UsedService usedServices[], int *usedCount,
@@ -188,14 +141,17 @@ void addUsedService(UsedService usedServices[], int *usedCount,
                     Room rooms[], int roomCount,
                     Customer customers[], int customerCount,
                     Service services[], int serviceCount) {
+    (void)rooms;
+    (void)roomCount;
 
     clearScreen();
-    printServiceBoxHeader(SERVICE_TABLE_FULL_DIV, 56, "GOI DICH VU PHONG");
+    printHeader("GOI DICH VU PHONG");
 
     /* --- Nhap ma booking --- */
     char bkId[10];
     printf("  Nhap ma booking (VD: BK001): ");
     safeInput(bkId, sizeof(bkId));
+    trimStr(bkId);
 
     int bkIdx = findBookingById(bookings, bookingCount, bkId);
     if (bkIdx < 0) {
@@ -213,27 +169,9 @@ void addUsedService(UsedService usedServices[], int *usedCount,
     }
 
     /* --- Hien thong tin booking --- */
-    int rmIdx = findRoomById(rooms, roomCount, bookings[bkIdx].roomId);
     int cuIdx = findCustomerById(customers, customerCount, bookings[bkIdx].customerId);
-    char infoLine[80];
-
-    printf("\n");
-    printf(SERVICE_BOOKING_INFO_DIV);
-    printServiceInfoRow("Booking", bookings[bkIdx].bookingId);
-    if (cuIdx >= 0) {
-        snprintf(infoLine, sizeof(infoLine), "%s (%s)",
-                 customers[cuIdx].name, customers[cuIdx].id);
-        printServiceInfoRow("Khach", infoLine);
-    }
-    if (rmIdx >= 0) {
-        snprintf(infoLine, sizeof(infoLine), "%s (%s)",
-                 rooms[rmIdx].id, rooms[rmIdx].type);
-        printServiceInfoRow("Phong", infoLine);
-    }
-    snprintf(infoLine, sizeof(infoLine), "%s -> %s",
-             bookings[bkIdx].checkInDate, bookings[bkIdx].checkOutDate);
-    printServiceInfoRow("Thoi gian", infoLine);
-    printf(SERVICE_BOOKING_INFO_DIV);
+    printf("\n  Booking: %s\n", bookings[bkIdx].bookingId);
+    if (cuIdx >= 0) printf("  Khach  : %s (%s)\n", customers[cuIdx].name, customers[cuIdx].id);
 
     /* --- Hien danh sach dich vu --- */
     printf("\n");
@@ -305,7 +243,7 @@ void addUsedService(UsedService usedServices[], int *usedCount,
 
     /* --- Hien man hinh xac nhan --- */
     printf("\n");
-    printServiceBoxHeader(USED_SERVICE_CONFIRM_FULL_DIV, 56, "XAC NHAN GOI DICH VU");
+    printf("  XAC NHAN GOI DICH VU\n");
     printf("  | %-8s | %-22s | %5s | %12s |\n",
            "Ma DV", "Ten DV", "SL", "Thanh tien");
     printf(USED_SERVICE_CONFIRM_DIV);
@@ -370,208 +308,6 @@ void addUsedService(UsedService usedServices[], int *usedCount,
 
     saveUsedServices(usedServices, *usedCount);
     printf("\n  [OK] Da luu %d dich vu thanh cong!\n", cartCount);
-    pauseScreen();
-}
-
-/* ============================================================
-   HUY DICH VU DA GOI
-   ============================================================ */
-void cancelUsedService(UsedService usedServices[], int usedCount,
-                       Service services[], int serviceCount) {
-
-    clearScreen();
-    printServiceBoxHeader(USED_SERVICE_CANCEL_FULL_DIV, 64, "HUY DICH VU DA GOI");
-
-    char bkId[10];
-    printf("  Nhap ma booking: ");
-    safeInput(bkId, sizeof(bkId));
-
-    /* Liet ke dich vu cua booking nay con active */
-    int found = 0;
-    printf(USED_SERVICE_CANCEL_DIV);
-    printf("  | %-5s | %-8s | %-22s | %5s | %12s |\n",
-           "STT", "Ma DV", "Ten DV", "SL", "Thanh tien");
-    printf(USED_SERVICE_CANCEL_DIV);
-
-    for (int i = 0; i < usedCount; i++) {
-        if (strcmp(usedServices[i].bookingId, bkId) == 0
-            && usedServices[i].status == SERVICE_ACTIVE) {
-
-            int alreadyPrinted = 0;
-            for (int j = 0; j < i; j++) {
-                if (usedServices[j].status == SERVICE_ACTIVE &&
-                    strcmp(usedServices[j].bookingId, bkId) == 0 &&
-                    strcmp(usedServices[j].serviceId, usedServices[i].serviceId) == 0) {
-                    alreadyPrinted = 1;
-                    break;
-                }
-            }
-            if (alreadyPrinted) continue;
-
-            int svcIdx = findServiceById(services, serviceCount,
-                                         usedServices[i].serviceId);
-            float subtotal = 0;
-            int displayQty = usedServices[i].quantity;
-            char svcName[30] = "???";
-            if (svcIdx >= 0) {
-                strncpy(svcName, services[svcIdx].serviceName, sizeof(svcName) - 1);
-                svcName[sizeof(svcName) - 1] = '\0';
-            }
-
-            for (int j = i + 1; j < usedCount; j++) {
-                if (usedServices[j].status == SERVICE_ACTIVE &&
-                    strcmp(usedServices[j].bookingId, bkId) == 0 &&
-                    strcmp(usedServices[j].serviceId, usedServices[i].serviceId) == 0) {
-                    displayQty += usedServices[j].quantity;
-                }
-            }
-            if (svcIdx >= 0) {
-                subtotal = services[svcIdx].price * displayQty;
-            }
-
-            printf("  | %-5d | %-8.8s | %-22.22s | %5d | %12.0f |\n",
-                   ++found,
-                   usedServices[i].serviceId,
-                   svcName,
-                   displayQty,
-                   subtotal);
-        }
-    }
-
-    if (found == 0) {
-        printf("  | %-64s |\n", "Khong co dich vu nao de huy.");
-        printf(USED_SERVICE_CANCEL_DIV);
-        pauseScreen();
-        return;
-    }
-    printf(USED_SERVICE_CANCEL_DIV);
-
-    printf("\n  Nhap ma dich vu muon huy (VD: DV001): ");
-    char svcId[10];
-    safeInput(svcId, sizeof(svcId));
-
-    /* Tim va doi status = 0 */
-    int canceled = 0;
-    for (int i = 0; i < usedCount; i++) {
-        if (strcmp(usedServices[i].bookingId, bkId) == 0
-            && strcmp(usedServices[i].serviceId, svcId) == 0
-            && usedServices[i].status == SERVICE_ACTIVE) {
-
-            usedServices[i].status = SERVICE_CANCELED;
-            canceled = 1;
-        }
-    }
-
-    if (!canceled) {
-        printf("  [!] Khong tim thay dich vu %s trong booking %s.\n", svcId, bkId);
-    } else {
-        saveUsedServices(usedServices, usedCount);
-        printf("  [OK] Da huy dich vu %s.\n", svcId);
-    }
-    pauseScreen();
-}
-
-/* ============================================================
-   XEM DICH VU DA GOI THEO BOOKING
-   ============================================================ */
-void viewUsedServicesByBooking(UsedService usedServices[], int usedCount,
-                               Service services[], int serviceCount,
-                               Booking bookings[], int bookingCount,
-                               Customer customers[], int customerCount) {
-
-    clearScreen();
-    printServiceBoxHeader(USED_SERVICE_VIEW_FULL_DIV, 60, "XEM DICH VU THEO BOOKING");
-
-    char bkId[10];
-    printf("  Nhap ma booking: ");
-    safeInput(bkId, sizeof(bkId));
-
-    int bkIdx = findBookingById(bookings, bookingCount, bkId);
-    if (bkIdx < 0) {
-        printf("  [!] Khong tim thay booking %s\n", bkId);
-        pauseScreen();
-        return;
-    }
-
-    /* In thong tin booking */
-    int cuIdx = findCustomerById(customers, customerCount, bookings[bkIdx].customerId);
-    printf("\n");
-    printf(USED_SERVICE_INFO_DIV);
-    printf("  | %-13s | %-44.44s |\n", "Booking", bookings[bkIdx].bookingId);
-    if (cuIdx >= 0)
-        printf("  | %-13s | %-44.44s |\n", "Khach", customers[cuIdx].name);
-    printf("  | %-13s | %-44.44s |\n", "Check-in", bookings[bkIdx].checkInDate);
-    printf("  | %-13s | %-44.44s |\n", "Check-out", bookings[bkIdx].checkOutDate);
-    printf(USED_SERVICE_INFO_DIV);
-
-    printf(USED_SERVICE_VIEW_DIV);
-    printf("  | %-8s | %-18s | %4s | %8s | %-10s |\n",
-           "Ma DV", "Ten DV", "SL", "Don gia", "Trang thai");
-    printf(USED_SERVICE_VIEW_DIV);
-
-float total = 0;
-int found   = 0;
-
-for (int i = 0; i < usedCount; i++) {
-    if (strcmp(usedServices[i].bookingId, bkId) != 0) continue;
-
-    if (usedServices[i].status == SERVICE_ACTIVE) {
-        int alreadyPrinted = 0;
-        for (int j = 0; j < i; j++) {
-            if (usedServices[j].status == SERVICE_ACTIVE &&
-                strcmp(usedServices[j].bookingId, bkId) == 0 &&
-                strcmp(usedServices[j].serviceId, usedServices[i].serviceId) == 0) {
-                alreadyPrinted = 1;
-                break;
-            }
-        }
-        if (alreadyPrinted) continue;
-    }
-
-    int svcIdx = findServiceById(services, serviceCount, usedServices[i].serviceId);
-    float price    = 0;
-    char  name[30] = "???";
-    if (svcIdx >= 0) {
-        price = services[svcIdx].price;
-        strncpy(name, services[svcIdx].serviceName, sizeof(name) - 1);
-        name[sizeof(name) - 1] = '\0';
-    }
-
-    int displayQty = usedServices[i].quantity;
-    if (usedServices[i].status == SERVICE_ACTIVE) {
-        for (int j = i + 1; j < usedCount; j++) {
-            if (usedServices[j].status == SERVICE_ACTIVE &&
-                strcmp(usedServices[j].bookingId, bkId) == 0 &&
-                strcmp(usedServices[j].serviceId, usedServices[i].serviceId) == 0) {
-                displayQty += usedServices[j].quantity;
-            }
-        }
-    }
-
-    float subtotal = price * displayQty;
-    const char *statusStr = (usedServices[i].status == SERVICE_ACTIVE)
-                            ? "Hoat dong" : "Da huy   ";
-
-    printf("  | %-8.8s | %-18.18s | %4d | %8.0f | %-10.10s |\n",
-           usedServices[i].serviceId,
-           name,
-           displayQty,
-           price,
-           statusStr);
-
-    if (usedServices[i].status == SERVICE_ACTIVE)
-        total += subtotal;
-
-    found++;
-}
-
-if (found == 0) {
-    printf("  | %-60s |\n", "(Chua co dich vu nao)");
-} else {
-    printf(USED_SERVICE_VIEW_FULL_DIV);
-    printf("  | %-36s %19.0f VND |\n", "Tong tien dich vu (active):", total);
-}
-printf(USED_SERVICE_VIEW_FULL_DIV);
     pauseScreen();
 }
 
@@ -652,16 +388,17 @@ void menuService(UsedService usedServices[], int *usedCount,
 
     int choice;
     do {
+        /* Luon tai lai danh muc dich vu tu file de dong bo thay doi moi nhat */
+        serviceCount = loadServices(services);
+
         clearScreen();
-        printHeader("QUAN LY DICH VU");
+        printHeader("THEM DICH VU");
         printf("| 1. Goi dich vu cho phong                               |\n");
-        printf("| 2. Huy dich vu da goi                                  |\n");
-        printf("| 3. Xem dich vu theo booking                            |\n");
-        printf("| 4. Xem danh sach dich vu co san                        |\n");
+        printf("| 2. Xem danh sach dich vu co san                        |\n");
         printf("| 0. Quay lai menu chinh                                 |\n");
         printLine(58);
 
-        choice = inputInt("  Chon: ", 0, 4);
+        choice = inputInt("  Chon: ", 0, 2);
 
         switch (choice) {
             case 1:
@@ -672,16 +409,6 @@ void menuService(UsedService usedServices[], int *usedCount,
                                services, serviceCount);
                 break;
             case 2:
-                cancelUsedService(usedServices, *usedCount,
-                                  services, serviceCount);
-                break;
-            case 3:
-                viewUsedServicesByBooking(usedServices, *usedCount,
-                                         services, serviceCount,
-                                         bookings, bookingCount,
-                                         customers, customerCount);
-                break;
-            case 4:
                 clearScreen();
                 printServiceTableHeader("DANH SACH DICH VU");
                 listServices(services, serviceCount);

@@ -43,7 +43,6 @@ typedef struct {
 int   loadServices(Service services[]);
 void  listServices(Service services[], int count);
 int   findServiceById(Service services[], int count, const char *id);
-void  printService(Service *s);
 
 /* ============================================================
    CAC HAM DICH VU DA GOI
@@ -53,14 +52,6 @@ void  addUsedService(UsedService usedServices[], int *usedCount,
                      Room rooms[], int roomCount,
                      Customer customers[], int customerCount,
                      Service services[], int serviceCount);
-
-void  cancelUsedService(UsedService usedServices[], int usedCount,
-                        Service services[], int serviceCount);
-
-void  viewUsedServicesByBooking(UsedService usedServices[], int usedCount,
-                                Service services[], int serviceCount,
-                                Booking bookings[], int bookingCount,
-                                Customer customers[], int customerCount);
 
 float calcServiceCost(UsedService usedServices[], int usedCount,
                       Service services[], int serviceCount,
