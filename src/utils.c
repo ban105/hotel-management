@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include "utils.h"
 
+#define BOX_INNER_WIDTH 56
+
 void clearScreen() {
 #ifdef _WIN32
     system("cls");
@@ -40,6 +42,30 @@ void printHeader(const char *title) {
     for (int i = 0; i < len - padding - titleLen - 2; i++) printf(" ");
     printf("|\n");
     printLine(len);
+}
+
+void printBoxLine() {
+    printf("  +");
+    for (int i = 0; i < BOX_INNER_WIDTH; i++) printf("-");
+    printf("+\n");
+}
+
+void printBoxText(const char *text) {
+    printf("  | %-*.*s|\n", BOX_INNER_WIDTH - 1, BOX_INNER_WIDTH - 1, text);
+}
+
+void printBoxCentered(const char *text) {
+    int textLen = strlen(text);
+    if (textLen > BOX_INNER_WIDTH) textLen = BOX_INNER_WIDTH;
+
+    int leftPadding = (BOX_INNER_WIDTH - textLen) / 2;
+    int rightPadding = BOX_INNER_WIDTH - textLen - leftPadding;
+
+    printf("  |");
+    for (int i = 0; i < leftPadding; i++) printf(" ");
+    printf("%.*s", textLen, text);
+    for (int i = 0; i < rightPadding; i++) printf(" ");
+    printf("|\n");
 }
 
 int isNotEmpty(const char *str) {

@@ -67,18 +67,18 @@ int main() {
     showWelcome();
     char summaryLine[80];
 
-    printf("  +------------------------------------------+\n");
-    printf("  | TOM TAT DU LIEU                          |\n");
-    printf("  +------------------------------------------+\n");
+    printBoxLine();
+    printBoxText("TOM TAT DU LIEU");
+    printBoxLine();
     snprintf(summaryLine, sizeof(summaryLine),
              "%-7s: %-3d | %-6s: %-3d | %-7s: %-3d",
              "Phong", roomCount, "Khach", customerCount, "Booking", bookingCount);
-    printf("  | %-40.40s |\n", summaryLine);
+    printBoxText(summaryLine);
     snprintf(summaryLine, sizeof(summaryLine),
              "%-7s: %-3d | %-6s: %-3d",
              "Dich vu", serviceCount, "Da goi", usedCount);
-    printf("  | %-40.40s |\n", summaryLine);
-    printf("  +------------------------------------------+\n");
+    printBoxText(summaryLine);
+    printBoxLine();
     pauseScreen();
 
     // 4. Vao vong lap Menu chinh

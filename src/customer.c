@@ -10,6 +10,7 @@
    ============================================= */
 
 #define CUSTOMER_FILE "data/customers.txt"
+#define CUSTOMER_TABLE_WIDTH 86
 
 /* ============================
    TIEN ICH HANG THANH VIEN
@@ -33,6 +34,28 @@ float rankDiscount(int rank) {
 
 static void printTableBorder() {
     printf("  +--------+----------------------+---------------+------------------+--------+----------+\n");
+}
+
+static void printCustomerTitleBorder() {
+    printf("  +");
+    for (int i = 0; i < CUSTOMER_TABLE_WIDTH; i++) printf("-");
+    printf("+\n");
+}
+
+static void printCustomerTitle(const char *title) {
+    int titleLen = strlen(title);
+    if (titleLen > CUSTOMER_TABLE_WIDTH) titleLen = CUSTOMER_TABLE_WIDTH;
+
+    int leftPadding = (CUSTOMER_TABLE_WIDTH - titleLen) / 2;
+    int rightPadding = CUSTOMER_TABLE_WIDTH - titleLen - leftPadding;
+
+    printCustomerTitleBorder();
+    printf("  |");
+    for (int i = 0; i < leftPadding; i++) printf(" ");
+    printf("%.*s", titleLen, title);
+    for (int i = 0; i < rightPadding; i++) printf(" ");
+    printf("|\n");
+    printCustomerTitleBorder();
 }
 
 static void printCustomerTableHeader() {
@@ -162,7 +185,7 @@ void addCustomer(Customer customers[], int *count) {
 void deleteCustomer(Customer customers[], int *count,
                     Booking bookings[], int bookingCount) {
     clearScreen();
-    printHeader("XOA KHACH HANG");
+    printCustomerTitle("XOA KHACH HANG");
 
     char id[15];
     printf("\n  Nhap ma khach hang can xoa (vi du: KH001): ");
@@ -215,9 +238,7 @@ void deleteCustomer(Customer customers[], int *count,
    ============================ */
 void listCustomers(Customer customers[], int count) {
     clearScreen();
-    printf("  +--------------------------------------------------------------------------------------+\n");
-    printf("  |                               DANH SACH KHACH HANG                                   |\n");
-    printf("  +--------------------------------------------------------------------------------------+\n");
+    printCustomerTitle("DANH SACH KHACH HANG");
 
     if (count == 0) {
         printf("  (Chua co khach hang nao)\n");

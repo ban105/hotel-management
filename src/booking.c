@@ -8,6 +8,9 @@
 #include "utils.h"
 
 #define BOOKING_FILE "data/bookings.txt"
+#define BOOKING_DETAIL_WIDTH 50
+#define BOOKING_DETAIL_LABEL_WIDTH 19
+#define BOOKING_DETAIL_VALUE_WIDTH 26
 
 /* ============================
    TIEN ICH
@@ -124,6 +127,46 @@ static void printBookingRow(Booking *b) {
            bookingStatusStr(b->status));
 }
 
+static void printBookingDetailBorder() {
+    printf("  +");
+    for (int i = 0; i < BOOKING_DETAIL_WIDTH; i++) printf("-");
+    printf("+\n");
+}
+
+static void printBookingDetailTitle(const char *title) {
+    int titleLen = strlen(title);
+    if (titleLen > BOOKING_DETAIL_WIDTH) titleLen = BOOKING_DETAIL_WIDTH;
+
+    int leftPadding = (BOOKING_DETAIL_WIDTH - titleLen) / 2;
+    int rightPadding = BOOKING_DETAIL_WIDTH - titleLen - leftPadding;
+
+    printBookingDetailBorder();
+    printf("  |");
+    for (int i = 0; i < leftPadding; i++) printf(" ");
+    printf("%.*s", titleLen, title);
+    for (int i = 0; i < rightPadding; i++) printf(" ");
+    printf("|\n");
+    printBookingDetailBorder();
+}
+
+static void printBookingDetailText(const char *label, const char *value) {
+    printf("  | %-*.*s : %*.*s |\n",
+           BOOKING_DETAIL_LABEL_WIDTH, BOOKING_DETAIL_LABEL_WIDTH, label,
+           BOOKING_DETAIL_VALUE_WIDTH, BOOKING_DETAIL_VALUE_WIDTH, value);
+}
+
+static void printBookingDetailInt(const char *label, int value) {
+    char valueText[20];
+    snprintf(valueText, sizeof(valueText), "%d", value);
+    printBookingDetailText(label, valueText);
+}
+
+static void printBookingDetailMoney(const char *label, float value) {
+    char valueText[30];
+    snprintf(valueText, sizeof(valueText), "%.0f VND", value);
+    printBookingDetailText(label, valueText);
+}
+
 /* ============================
    IN PHIEU CHECK-IN
    ============================ */
@@ -137,19 +180,19 @@ void printCheckInReceipt(Booking *b, Room *r, Customer *c) {
     char billId[10];
     generateBillId(billId, b->bookingId);
 
-    printf("  ---------------------------------------------------\n");
-    printf("  |%-49s|\n", "               CHECK-IN THANH CONG");
-    printf("  ---------------------------------------------------\n");
-    printf("  | %-18s | %26.26s |\n", "Booking", b->bookingId);
-    printf("  | %-18s | %26.26s |\n", "Bill", billId);
-    printf("  | %-18s | %26.26s |\n", "Khach", c->name);
-    printf("  | %-18s | %26.26s |\n", "Phong", r->id);
-    printf("  | %-18s | %26.26s |\n", "Ngay check-in", b->checkInDate);
-    printf("  | %-18s | %26.26s |\n", "Checkout du kien", b->checkOutDate);
-    printf("  | %-18s | %22.0f VND |\n", "Tien phong", roomCost);
-    printf("  | %-18s | %22.0f VND |\n", "Giam gia", discAmt);
-    printf("  | %-18s | %22.0f VND |\n", "Tong", estimate);
-    printf("  ---------------------------------------------------\n");
+    printBookingDetailTitle("CHECK-IN THANH CONG");
+    printBookingDetailText("Booking", b->bookingId);
+    printBookingDetailText("Bill", billId);
+    printBookingDetailText("Khach", c->name);
+    printBookingDetailText("Phong", r->id);
+    printBookingDetailText("Check-in", b->checkInDate);
+    printBookingDetailText("Check-out (du kien)", b->checkOutDate);
+    printBookingDetailInt("So dem", nights);
+    printBookingDetailMoney("Gia/dem", r->price);
+    printBookingDetailMoney("Tien phong", roomCost);
+    printBookingDetailMoney("Giam gia", discAmt);
+    printBookingDetailMoney("Tam tinh", estimate);
+    printBookingDetailBorder();
     printf("\n");
 }
 
@@ -317,20 +360,20 @@ void checkOut(Booking bookings[], int bookingCount,
     generateBillId(billId, bookings[bIdx].bookingId);
 
     clearScreen();
-    printf("  ---------------------------------------------------\n");
-    printf("  |%-49s|\n", "               XAC NHAN CHECK-OUT");
-    printf("  ---------------------------------------------------\n");
-    printf("  | %-18s | %26.26s |\n", "Booking", bookings[bIdx].bookingId);
-    printf("  | %-18s | %26.26s |\n", "Bill", billId);
-    printf("  | %-18s | %26.26s |\n", "Khach", customers[cIdx].name);
-    printf("  | %-18s | %26.26s |\n", "Phong", rooms[rIdx].id);
-    printf("  | %-18s | %26d |\n", "So dem", nights);
-    printf("  | %-18s | %22.0f VND |\n", "Gia/dem", rooms[rIdx].price);
-    printf("  | %-18s | %22.0f VND |\n", "Tien phong", roomCost);
-    printf("  | %-18s | %22.0f VND |\n", "Giam gia", discAmt);
-    printf("  | %-18s | %22.0f VND |\n", "Tien dich vu", serviceCost);
-    printf("  | %-18s | %22.0f VND |\n", "Tong", total);
-    printf("  ---------------------------------------------------\n");
+    printBookingDetailTitle("XAC NHAN CHECK-OUT");
+    printBookingDetailText("Booking", bookings[bIdx].bookingId);
+    printBookingDetailText("Bill", billId);
+    printBookingDetailText("Khach", customers[cIdx].name);
+    printBookingDetailText("Phong", rooms[rIdx].id);
+    printBookingDetailText("Check-in", bookings[bIdx].checkInDate);
+    printBookingDetailText("Check-out", bookings[bIdx].checkOutDate);
+    printBookingDetailInt("So dem", nights);
+    printBookingDetailMoney("Gia/dem", rooms[rIdx].price);
+    printBookingDetailMoney("Tien phong", roomCost);
+    printBookingDetailMoney("Giam gia", discAmt);
+    printBookingDetailMoney("Tien dich vu", serviceCost);
+    printBookingDetailMoney("Tong", total);
+    printBookingDetailBorder();
 
     printf("  Xac nhan check-out? (y/n): ");
     char confirm[5];

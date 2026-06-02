@@ -53,6 +53,11 @@ void  addUsedService(UsedService usedServices[], int *usedCount,
                      Customer customers[], int customerCount,
                      Service services[], int serviceCount);
 
+void  deleteUsedService(UsedService usedServices[], int *usedCount,
+                        Booking bookings[], int bookingCount,
+                        Customer customers[], int customerCount,
+                        Service services[], int serviceCount);
+
 float calcServiceCost(UsedService usedServices[], int usedCount,
                       Service services[], int serviceCount,
                       const char *bookingId);

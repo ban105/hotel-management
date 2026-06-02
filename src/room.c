@@ -147,7 +147,9 @@ void deleteRoom(Room rooms[], int *count) {
     }
 
     clearScreen();
-    printHeader("XOA PHONG");
+    printBoxLine();
+    printBoxCentered("XOA PHONG");
+    printBoxLine();
 
     char id[10];
     printf("  Nhap ma phong can xoa: ");

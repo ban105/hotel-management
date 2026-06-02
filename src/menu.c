@@ -9,10 +9,10 @@
 void showWelcome() {
     clearScreen();
     printf("\n");
-    printf("  +------------------------------------------+\n");
-    printf("  |        HE THONG QUAN LY KHACH SAN        |\n");
-    printf("  |               HOTEL MANAGER              |\n");
-    printf("  +------------------------------------------+\n");
+    printBoxLine();
+    printBoxCentered("HE THONG QUAN LY KHACH SAN");
+    printBoxCentered("HOTEL MANAGER");
+    printBoxLine();
     printf("\n");
 }
 
@@ -25,15 +25,16 @@ void mainMenu(Room rooms[], int *roomCount,
     int choice;
     do {
         clearScreen();
-        printHeader("MENU CHINH");
-        printLine(58);
-        printf("| 1. Quan ly Phong                                       |\n");
-        printf("| 2. Quan ly Khach hang                                  |\n");
-        printf("| 3. Check-in / Check-out                                |\n");
-        printf("| 4. Them dich vu                                        |\n");
-        printf("| 5. Xem/In hoa don                                      |\n");
-        printf("| 0. Thoat chuong trinh                                  |\n");
-        printLine(58);
+        printBoxLine();
+        printBoxCentered("MENU CHINH");
+        printBoxLine();
+        printBoxText("1. Quan ly Phong");
+        printBoxText("2. Quan ly Khach hang");
+        printBoxText("3. Check-in / Check-out");
+        printBoxText("4. Them dich vu");
+        printBoxText("5. Xem/In hoa don");
+        printBoxText("0. Thoat chuong trinh");
+        printBoxLine();
 
         choice = inputInt("  Chon chuc nang: ", 0, 5);
 
