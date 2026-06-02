@@ -7,10 +7,27 @@
 #define SERVICE_TABLE_DIV "  +----------+------------------------+------------+---------+\n"
 #define USED_SERVICE_CONFIRM_DIV "  +----------+------------------------+-------+--------------+\n"
 #define USED_SERVICE_CONFIRM_FULL_DIV "  +----------------------------------------------------------+\n"
+#define SERVICE_TABLE_WIDTH 58
 #define USED_SERVICE_TABLE_WIDTH 58
 
 static void printServiceTableHeader(const char *title) {
-    printf("\n  %s\n", title);
+    int titleLen = strlen(title);
+    if (titleLen > SERVICE_TABLE_WIDTH) titleLen = SERVICE_TABLE_WIDTH;
+
+    int leftPadding = (SERVICE_TABLE_WIDTH - titleLen) / 2;
+    int rightPadding = SERVICE_TABLE_WIDTH - titleLen - leftPadding;
+
+    printf("\n  +");
+    for (int i = 0; i < SERVICE_TABLE_WIDTH; i++) printf("-");
+    printf("+\n");
+    printf("  |");
+    for (int i = 0; i < leftPadding; i++) printf(" ");
+    printf("%.*s", titleLen, title);
+    for (int i = 0; i < rightPadding; i++) printf(" ");
+    printf("|\n");
+    printf("  +");
+    for (int i = 0; i < SERVICE_TABLE_WIDTH; i++) printf("-");
+    printf("+\n");
 }
 
 static void printUsedServiceTitle(const char *title) {
@@ -299,8 +316,7 @@ void addUsedService(UsedService usedServices[], int *usedCount,
     }
 
     /* --- Hien man hinh xac nhan --- */
-    printf("\n");
-    printf("  XAC NHAN GOI DICH VU\n");
+    printUsedServiceTitle("XAC NHAN GOI DICH VU");
     printf("  | %-8s | %-22s | %5s | %12s |\n",
            "Ma DV", "Ten DV", "SL", "Thanh tien");
     printf(USED_SERVICE_CONFIRM_DIV);

@@ -8,36 +8,6 @@
 #include "booking.h"
 
 /* ============================================================
-   HANG SO
-   ============================================================ */
-#define MAX_SERVICES      50
-#define MAX_USED_SERVICES 500
-#define MAX_CART_ITEMS    20
-
-#define SERVICE_ACTIVE    1
-#define SERVICE_CANCELED  0
-
-/* ============================================================
-   STRUCT DANH MUC DICH VU (doc tu file tinh)
-   ============================================================ */
-typedef struct {
-    char  serviceId[10];   
-    char  serviceName[30]; 
-    float price;           
-    char  unit[10];        
-} Service;
-
-/* ============================================================
-   STRUCT DICH VU KHACH DA GOI (luu vao file dong)
-   ============================================================ */
-typedef struct {
-    char bookingId[10]; 
-    char serviceId[10]; 
-    int  quantity;      
-    int  status;        
-} UsedService;
-
-/* ============================================================
    CAC HAM DANH MUC DICH VU
    ============================================================ */
 int   loadServices(Service services[]);
