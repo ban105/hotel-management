@@ -36,6 +36,13 @@ Ung dung quan ly khach san chay tren console, duoc viet bang ngon ngu C. Project
 - Luu lich su doanh thu vao `data/bills.txt`
 - Hoa don xuat ra thu muc `output/`
 
+### Thong ke tong hop
+- Xem tong so phong, phong trong va phong dang thue
+- Xem tong so khach hang va tong so booking
+- Tinh doanh thu phong, doanh thu dich vu va tong doanh thu
+- Hien thi ty le lap day phong
+- Bao cao duoc in theo khung bang console
+
 ## Cau truc thu muc
 
 ```text
@@ -48,6 +55,7 @@ Ung dung quan ly khach san chay tren console, duoc viet bang ngon ngu C. Project
 |   |-- booking.h
 |   |-- customer.h
 |   |-- menu.h
+|   |-- report.h
 |   |-- room.h
 |   |-- service.h
 |   |-- types.h
@@ -57,6 +65,7 @@ Ung dung quan ly khach san chay tren console, duoc viet bang ngon ngu C. Project
 |   |-- booking.c
 |   |-- customer.c
 |   |-- menu.c
+|   |-- report.c
 |   |-- room.c
 |   |-- service.c
 |   `-- utils.c
@@ -96,7 +105,7 @@ make
 ### Cach 2: bien dich truc tiep bang GCC
 
 ```powershell
-gcc -Wall -Wextra -std=c11 -Iinclude main.c src\room.c src\customer.c src\booking.c src\service.c src\bill.c src\menu.c src\utils.c -o hotel.exe
+gcc -Wall -Wextra -std=c11 -Iinclude main.c src\room.c src\customer.c src\booking.c src\service.c src\bill.c src\report.c src\menu.c src\utils.c -o hotel.exe
 ```
 
 ## Chay chuong trinh
@@ -177,12 +186,14 @@ Nen commit:
 - `Makefile`
 - `README.md`
 - Du lieu mau trong `data/` neu can demo
+- `.gitignore`
 
 Khong nen commit:
 
 - File object `*.o`
 - File build `hotel.exe`
 - File hoa don sinh ra trong `output/*.txt` neu khong muon luu ket qua demo
+- File tam cua editor/IDE
 
 Neu chua co `.gitignore`, co the tao voi noi dung:
 
@@ -190,6 +201,8 @@ Neu chua co `.gitignore`, co the tao voi noi dung:
 *.o
 hotel.exe
 output/*.txt
+.vscode/
+.idea/
 ```
 
 ## Tac gia

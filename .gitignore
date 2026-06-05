@@ -1,14 +1,6 @@
-# Build artifacts
-*.exe
 *.o
-*.obj
-
-# Temporary/editor files
-*.tmp
-*.log
-.DS_Store
-Thumbs.db
-
-# Generated invoices can be recreated from the app.
+hotel.exe
 output/*.txt
-
+Hotel_Management_Src_Code/output/*.txt
+.vscode/
+.idea/

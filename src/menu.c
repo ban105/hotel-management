@@ -4,6 +4,7 @@
 #include "customer.h"
 #include "booking.h"
 #include "bill.h"
+#include "report.h"
 #include "utils.h"
 
 void showWelcome() {
@@ -33,10 +34,11 @@ void mainMenu(Room rooms[], int *roomCount,
         printBoxText("3. Check-in / Check-out");
         printBoxText("4. Them dich vu");
         printBoxText("5. Xem/In hoa don");
+        printBoxText("6. Thong ke tong hop");
         printBoxText("0. Thoat chuong trinh");
         printBoxLine();
 
-        choice = inputInt("  Chon chuc nang: ", 0, 5);
+        choice = inputInt("  Chon chuc nang: ", 0, 6);
 
         switch (choice) {
             case 1:
@@ -64,6 +66,13 @@ void mainMenu(Room rooms[], int *roomCount,
                                   customers, *customerCount,
                                   usedServices, *usedCount,
                                   services, *serviceCount);
+                break;
+            case 6:
+                showStatistics(rooms, *roomCount,
+                               customers, *customerCount,
+                               bookings, *bookingCount,
+                               usedServices, *usedCount,
+                               services, *serviceCount);
                 break;
             case 0:
                 clearScreen();
